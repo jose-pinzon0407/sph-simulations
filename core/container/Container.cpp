@@ -1,31 +1,28 @@
 #include "Container.h"
 
-ParticleContainer::ParticleContainer(size_t N):Container{}{
-    this->Resize(N);
-}
 
-Particle ParticleContainer::operator[](const size_t i){
-    return particles[i];
-}
+// Particle ParticleContainer::operator[](const size_t i){
+//     return particles[i];
+// }
 
 void ParticleContainer::Resize(size_t N){
     particles.resize(N);
 }
 
-size_t ParticleContainer::Size(){
-    return particles.size();
-}
+// size_t ParticleContainer::Size(){
+//     return particles.size();
+// }
 
-Vec3d ParticleContainer::pos(size_t i){
-    return particles[i].GetR();
-}
+// Vec3d ParticleContainer::pos(size_t i){
+//     return particles[i].r;
+// }
 
-Vec3d ParticleContainer::vel(size_t i){
-    return particles[i].GetV();
-}
+// Vec3d ParticleContainer::vel(size_t i){
+//     return particles[i].v;
+// }
 
 Vec3d ParticleContainer::force(size_t i) {
-    return particles[i].GetF();
+    return particles[i].f;
 }
 
 uint ParticleContainer::GetParticleIndex(size_t i){
@@ -44,46 +41,49 @@ void ParticleContainer::SetParticleCellIndex(size_t i, uint idx){
 
 }
 
-Real ParticleContainer::GetMass(size_t i){
-    return particles[i].GetMass();
-}
+// Real ParticleContainer::GetMass(size_t i){
+//     return particles[i].mass;
+// }
 
-Real ParticleContainer::GetDensity(size_t i){
-    return particles[i].rho;
-}
+// Real ParticleContainer::GetDensity(size_t i){
+//     return particles[i].rho;
+// }
 
 ScalarField& ParticleContainer::GetDensity(){
  //not implemented
+ 
 }
 
-void ParticleContainer::SetDensity(size_t i, Real dens){
-    particles[i].rho=dens;
-}
+// void ParticleContainer::SetDensity(size_t i, Real dens){
+//     particles[i].rho=dens;
+// }
 
-void ParticleContainer::SetForce(size_t i, Real fix, Real fiy, Real fiz){
-    particles[i].GetF()=Vec3d{fiy,fiy,fiz};
-}
+// void ParticleContainer::SetForce(size_t i, Real fix, Real fiy, Real fiz){
+//     particles[i].f[0]=fix;
+//     particles[i].f[1]=fiy;
+//     particles[i].f[2]=fiz;
+// }
 
-void ParticleContainer::SetForce(size_t i, Vec3d F){
-    SetForce(i,F[0],F[1],F[2]);
-}
+// void ParticleContainer::SetForce(size_t i, Vec3d F){
+//     SetForce(i,F[0],F[1],F[2]);
+// }
 
-void ParticleContainer::AddForce(size_t i, Vec3d F){
-    AddForce(i,F[0],F[1],F[2]);
+// void ParticleContainer::AddForce(size_t i, Vec3d F){
+//     AddForce(i,F[0],F[1],F[2]);
 
-}
+// }
 
-void ParticleContainer::AddForce(size_t i, Real fix, Real fiy, Real fiz){
-    particles[i].GetF()[0]=fix;
-    particles[i].GetF()[1]=fiy;
-    particles[i].GetF()[2]=fiz;
-}
+// void ParticleContainer::AddForce(size_t i, Real fix, Real fiy, Real fiz){
+//     particles[i].f[0]+=fix;
+//     particles[i].f[1]+=fiy;
+//     particles[i].f[2]+=fiz;
+// }
 
 
 void ParticleContainer::SetPosition(size_t i, Real rix, Real riy, Real riz){
-    particles[i].GetR()[0]=rix;
-    particles[i].GetR()[1]=riy;
-    particles[i].GetR()[2]=riz;
+    particles[i].r[0]=rix;
+    particles[i].r[1]=riy;
+    particles[i].r[2]=riz;
 }
 
 void ParticleContainer::SetPosition(size_t i, Vec3d F){
@@ -101,9 +101,9 @@ void ParticleContainer::UpdatePosition(size_t i, Real dt){
 }
 
 void ParticleContainer::SetVelocity(size_t i, Real vix, Real viy, Real viz){
-    particles[i].GetV()[0]=vix;
-    particles[i].GetV()[1]=viy;
-    particles[i].GetV()[2]=viz;
+    particles[i].v[0]=vix;
+    particles[i].v[1]=viy;
+    particles[i].v[2]=viz;
 }
 
 void ParticleContainer::SetVelocity(size_t i, Vec3d V){

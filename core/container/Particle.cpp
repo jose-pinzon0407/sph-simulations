@@ -1,6 +1,6 @@
 #include "Particle.h"
 
-Particle::Particle(Real dens, Real ms, Vec3d& pos, Vec3d& vel, Vec3d& force):rho{dens},mass{ms},r{pos},v{vel},f{force}{
+Particle::Particle(Real dens, Real ms, Vec3d pos, Vec3d vel, Vec3d force):rho{dens},mass{ms},r{pos},v{vel},f{force}{
 
 }
 

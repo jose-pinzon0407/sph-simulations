@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Particle.h"
-
+#include "SoAParticle.h"
 class Container{
     public:
 
@@ -44,8 +44,10 @@ class Container{
 class ParticleContainer:public Container{
 
     public:
-    ParticleContainer(size_t N);
-    Particle operator[](const std::size_t i) override;
+
+    inline Particle operator[](const std::size_t i) override{
+        return particles[i];
+    }
 
     void Build()override{
 
@@ -54,35 +56,63 @@ class ParticleContainer:public Container{
 
     }
 
-    Vec3d pos(size_t i)override;
-    Vec3d vel(size_t i)override;
-    Vec3d force(size_t i)override;
+    inline Vec3d pos(size_t i)override{
+        return particles[i].r;
+    }
 
-    size_t Size()override;
+    inline Vec3d vel(size_t i)override{
+        return particles[i].v;
+    }
+
+    inline Vec3d force(size_t i)override;
+
+    inline size_t Size()override{
+        return particles.size();
+    }
     uint GetParticleIndex(size_t i)override;
     void SetParticleIndex(size_t i, uint idx)override;
     uint GetParticleCellIndex(size_t i)override;
     void SetParticleCellIndex(size_t i, uint idx)override;
 
     
-    Real GetMass(size_t i)override;
-    void SetDensity(size_t i, Real rho)override;
-    Real GetDensity(size_t)override;
-    ScalarField& GetDensity()override;
-    void SetForce(size_t i, Real fix, Real fiy, Real fiz)override;
-    void SetForce(size_t i, Vec3d F)override;
-    void AddForce(std::size_t i, Vec3d F)override;
-    void AddForce(std::size_t i, Real fix, Real fiy, Real fiz)override;
+    inline Real GetMass(size_t i)override{
+        return particles[i].mass;
+    }
+    inline void SetDensity(size_t i, Real dens)override{
+        particles[i].rho=dens;
+    }
+    inline Real GetDensity(size_t i)override{
+        return particles[i].rho;
+    }
 
-    void SetPosition(size_t i, size_t j, Real val)override;
-    void SetPosition(size_t, Real fix, Real fiy, Real fiz)override;
-    void SetPosition(size_t, Vec3d R)override;
-    void UpdatePosition(std::size_t i, Real dt)override;
-    void SetVelocity(size_t i, size_t j, Real val)override;
-    void SetVelocity(size_t, Real fix, Real fiy, Real fiz)override;
-    void SetVelocity(size_t, Vec3d R)override;
-    void UpdateVelocity(std::size_t i, Real dt)override;
-    void Resize(std::size_t N)override;
+    inline ScalarField& GetDensity()override;
+    inline void SetForce(size_t i, Real fix, Real fiy, Real fiz)override{
+        particles[i].f[0]=fix;
+        particles[i].f[1]=fiy;
+        particles[i].f[2]=fiz;
+    }
+    inline void SetForce(size_t i, Vec3d F)override{
+        SetForce(i,F[0],F[1],F[2]);
+    }
+    
+    inline void AddForce(std::size_t i, Vec3d F)override{
+        AddForce(i,F[0],F[1],F[2]);
+    }
+    inline void AddForce(std::size_t i, Real fix, Real fiy, Real fiz)override{
+        particles[i].f[0]+=fix;
+        particles[i].f[1]+=fiy;
+        particles[i].f[2]+=fiz;
+    }
+
+    inline void SetPosition(size_t i, size_t j, Real val)override;
+    inline void SetPosition(size_t, Real fix, Real fiy, Real fiz)override;
+    inline void SetPosition(size_t, Vec3d R)override;
+    inline void UpdatePosition(std::size_t i, Real dt)override;
+    inline void SetVelocity(size_t i, size_t j, Real val)override;
+    inline void SetVelocity(size_t, Real fix, Real fiy, Real fiz)override;
+    inline void SetVelocity(size_t, Vec3d R)override;
+    inline void UpdateVelocity(std::size_t i, Real dt)override;
+    inline void Resize(std::size_t N)override;
 
     protected:
     std::vector<Particle> particles;
