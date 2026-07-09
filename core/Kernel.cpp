@@ -9,10 +9,10 @@ void DensityKernel::SetVal(){
     val=315.0/(64.0*M_PI*std::pow(h,9.0));
 }
 
-Real DensityKernel::W(Vec3d& rij){
-    Real r2 = SquaredNorm(rij);
-    return  (h2-r2)*(h2-r2)*(h2-r2)*val;
-}
+// Real DensityKernel::W(Vec3d& rij){
+//     Real r2 = SquaredNorm(rij);
+//     return  (h2-r2)*(h2-r2)*(h2-r2)*val;
+// }
 
 Vec3d DensityKernel::GradW(Vec3d& rij){
     Real r1 = VecNorm(rij);
@@ -44,13 +44,13 @@ Real PressureKernel::W(Vec3d& rij){
     return (h-r1)*(h-r1)*(h-r1)*val;
 }
 
-Vec3d PressureKernel::GradW(Vec3d& rij){
-    Real r1 = VecNorm(rij);
-    if(r1<TOL) return Vec3d{0.0,0.0,0.0};
+// Vec3d PressureKernel::GradW(Vec3d& rij){
+//     Real r1 = VecNorm(rij);
+//     if(r1<TOL) return Vec3d{0.0,0.0,0.0};
 
-    Real dW= -3.0*val*(h-r1)*(h-r1);
-    return (dW/r1)*rij;
-}
+//     Real dW= -3.0*val*(h-r1)*(h-r1);
+//     return (dW/r1)*rij;
+// }
 
 Real PressureKernel::LaplacianW(Vec3d& rij){
     //Not implemented
@@ -82,7 +82,10 @@ Vec3d ViscosityKernel::GradW(Vec3d& rij){
     return (dW/r1)*rij;
 }
 
-Real ViscosityKernel::LaplacianW(Vec3d& rij){
-    //Not implemented
-    return 0.0;
-}
+// Real ViscosityKernel::LaplacianW(Vec3d& rij){
+//     Real r2 = SquaredNorm(rij);
+//     Real r1 = std::sqrt(r2);
+//     Real r3 = std::sqrt(r2)*r2;
+//     Real h6=h*h*h*h*h*h;
+//     return 45.0/(M_PI*h6)*(h-r1);
+// }

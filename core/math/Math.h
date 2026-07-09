@@ -13,7 +13,6 @@ using ScalarField = std::vector<Real>;
 using VectorField = std::vector<Vec3d>;
 
 
-
 template<typename T>
 std::ostream& operator<<(std::ostream& os, std::array<T,3> const& v );
 
@@ -57,7 +56,7 @@ template<typename T>
 inline std::array<T,3> VectorMultiplyEntries(std::array<T,3> const& v1,std::array<T,3> const& v2);
 
 template<typename T>
-double VecNorm(std::array<T,3> const& V);
+inline double VecNorm(std::array<T,3> const& V);
 
 /**
  * \brief Tensor product between two vectors

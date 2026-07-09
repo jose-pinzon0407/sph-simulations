@@ -124,7 +124,7 @@ template<typename T, typename U>
 }
 
 template<typename T>
- double SquaredNorm(std::array<T,3> const& V){
+double SquaredNorm(std::array<T,3> const& V){
     double n2 = 0.0;    
 
     for(size_t i=0;i<V.size();++i){
@@ -135,7 +135,7 @@ template<typename T>
 }
 
 template<typename T>
- double VecNorm(std::array<T,3> const& V){
+double VecNorm(std::array<T,3> const& V){
     return std::sqrt(SquaredNorm(V));
 }
 
