@@ -42,9 +42,11 @@ add_executable(SPH_SoA
               ${SPH_CORE}/Kernel.cpp
               ${SPH_CORE}/alg/ForceComputation.cpp
               ${SPH_CORE}/alg/SoAForceComputation.cpp
+              ${SPH_CORE}/alg/SortedForceComputation.cpp
               ${SPH_CORE}/container/Container.cpp
               ${SPH_CORE}/container/SoAContainer.cpp
               ${SPH_CORE}/container/Particle.cpp
+              ${SPH_CORE}/container/SortedContainer.cpp
               ${SPH_CORE}/integrator/Integrator.cpp
               ${SPH_CORE}/utils/Printer.cpp
               ${SPH_CORE}/utils/CheckPointWriter.cpp

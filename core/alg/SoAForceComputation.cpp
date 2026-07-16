@@ -69,9 +69,9 @@ void SoAForceComputation::ComputeForces(SoAContainer& particles){
             Real dvz = soa_particles.vz[j]-vi_z;
             Real viscosity_multiplier = mu/(soa_particles.density[j]*M_PI*h6)*45.0*(H-r1);
 
-            fv_x = viscosity_multiplier*dvx;
-            fv_y = viscosity_multiplier*dvy;
-            fv_z = viscosity_multiplier*dvz;
+            fv_x += viscosity_multiplier*dvx;
+            fv_y += viscosity_multiplier*dvy;
+            fv_z += viscosity_multiplier*dvz;
 
 
 
