@@ -18,11 +18,11 @@ class SoAContainer:public Container{
         return Particle{particles.density[i],particles.mass[i],pos(i),vel(i),force(i)};
     }
 
-    void Build(){
+    virtual void Build(){
 
     }
 
-    void Rebuild(){
+    virtual void Rebuild(){
 
     }
 

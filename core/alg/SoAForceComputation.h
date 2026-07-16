@@ -46,6 +46,7 @@ class SortedForceComputation{
     }
 
     void ComputeForces(SortedSoAContainer& particles);
+    void ComputeForces2(SortedSoAContainer& particles);
     void ApproximateDensity(SortedSoAContainer& particles);
     void CalculatePressure(SortedSoAContainer& particles);
 

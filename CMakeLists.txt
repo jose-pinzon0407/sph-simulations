@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
+include(CMakePrintHelpers)
+
+
 project(SPH
         VERSION 0.1
         LANGUAGES CXX
@@ -14,6 +17,13 @@ option(DOUBLE_PRECISION "Either single or double" ON)
 option(VECTORIZATION "Use auto vectorization" ON)
 
 set(default_build_type "Release")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Build type" FORCE)
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 add_compile_options(-O3
                 #     -flto
                     )
@@ -54,3 +64,6 @@ add_executable(SPH_SoA
               )
 
 target_include_directories(SPH_SoA PRIVATE ${SPH_CORE})
+
+cmake_print_variables(CMAKE_CXX_COMPILER)
+cmake_print_variables(CMAKE_BUILD_TYPE)

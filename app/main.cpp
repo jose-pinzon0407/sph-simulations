@@ -25,12 +25,14 @@ Timer container_build{"container_build"};
 Timer main_loop{"main_loop"};
 
 int main(int argc, char** argv){
-    int steps=5000;
+    int steps=5;
     Real dt=0.005;
     Domain domain;
     domain.h_corner=Vec3d {10,20,0};
     domain.l_corner=Vec3d {0,0,0};
-    NeighborSearch neighbor_search{domain};
+    NeighborSearch neighbor_search{domain,H};
+
+    std::cout<<"[Domain] Length:"<<domain.GetLength()<<std::endl;
 
     int N=10;
     // ParticleContainer container;
@@ -49,16 +51,13 @@ int main(int argc, char** argv){
     lattice.CreateLattice(domain,container);
     neighbor_search.FindNeighbors(container);
 
-    CheckPointWriter checkpoint{"positions_step_",1};
+    CheckPointWriter checkpoint{"positions_step_",0};
     checkpoint.WriteCheckPoint(0,container);
 
 
-    // ForceComputation computation{H,container.Size()};
     // SoAForceComputation computation{H};
     SortedForceComputation computation{H,neighbor_search};
-    // computation.ApproximateDensity(container);
-    // computation.CalculatePressure(container);
-    // computation.ComputeForces(container);
+
 
     main_loop.Start();
     for(int i=1;i<steps;++i){

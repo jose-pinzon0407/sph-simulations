@@ -9,8 +9,8 @@
 struct NeighborSearch{
 
     public: 
-    NeighborSearch(Domain& domain){
-        SetGrid(domain);
+    NeighborSearch(Domain& domain, Real cell_size){
+        SetGrid(domain,cell_size);
     }
     void FindNeighbors(SortedSoAContainer& particles){
         size_t num_particles = particles.Size();
@@ -30,6 +30,7 @@ struct NeighborSearch{
 
             ci0 = std::min(ci0, grid.nx-1);
             ci1 = std::min(ci1, grid.ny-1);
+            ci2 = std::min(ci2,grid.nz-1);
 
             // int ci0 = (rxi/grid.cell_size);
             // int ci1 = (ryi/grid.cell_size);
@@ -109,10 +110,10 @@ struct NeighborSearch{
 
     UniformGrid grid;
 
-    void SetGrid(Domain& domain){
+    void SetGrid(Domain& domain, Real radius){
         Vec3d box_length = domain.GetLength();
 
-        grid.cell_size = H;
+        grid.cell_size = radius;
         grid.nx = std::ceil(box_length[0]/grid.cell_size);
         grid.ny = std::ceil(box_length[1]/grid.cell_size);
         grid.nz = std::max((int)std::ceil(box_length[2]/grid.cell_size),1);

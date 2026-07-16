@@ -17,12 +17,10 @@ void CheckPointWriter::WriteCheckPoint(int step, Container& particles){
     int N = particles.Size();
     for(int i=0;i<N;++i){
         Particle particle = particles[i];
-        // file_stream<<particles.pos(i)<<" "<<particles.vel(i)<<std::endl;
-        file_stream<<particle.r[0]<<" "<<particle.r[1]<<std::endl;
+        file_stream<<particle.r[0]<<" "<<particle.r[1]<<" "<<particle.r[2]<<std::endl;
     }
     
 
     this->ReleaseStream();
-
 
 }

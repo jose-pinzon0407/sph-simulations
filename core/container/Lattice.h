@@ -22,11 +22,13 @@ struct LatticeCreator{
         std::cout<<"[LatticeCreator] Particles per direction: "<<particles_per_direction<<std::endl;
 
         int idx=0;
-        for(int j=0;j<particles_per_direction[1];++j){
-            for(int i=0;i<particles_per_direction[0];++i){
-                idx = i + particles_per_direction[0]*j;
-                particles.SetParticleIndex(idx,idx);
-                particles.SetPosition(idx,dX*i,dY*j,0.0);
+        for(int k=0;k<particles_per_direction [2];++k){
+            for(int j=0;j<particles_per_direction[1];++j){
+                for(int i=0;i<particles_per_direction[0];++i){
+                    idx = i + particles_per_direction[0]*j+k*particles_per_direction[0]*particles_per_direction[1];
+                    particles.SetParticleIndex(idx,idx);
+                    particles.SetPosition(idx,dX*i,dY*j,dZ*k);
+                }
             }
         }
 
