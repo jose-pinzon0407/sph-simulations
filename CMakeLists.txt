@@ -15,6 +15,15 @@ set(SPH_CORE "${CMAKE_CURRENT_SOURCE_DIR}/core/")
 message( STATUS "Project core is: ${SPH_CORE}")
 option(DOUBLE_PRECISION "Either single or double" ON)
 option(VECTORIZATION "Use auto vectorization" ON)
+option(GPU "Enable CUDA GPU acceleration" ON)
+
+if(GPU)
+enable_language(CUDA)
+set(CMAKE_CUDA_STANDARD 17)
+# set(CMAKE_CUDA_ARCHITECTURES native)
+add_compile_definitions(GPU=${GPU})
+message(STATUS "CUDA acceleration enabled")
+endif()
 
 set(default_build_type "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -47,23 +56,51 @@ add_compile_options(;-ftree-vectorize
                      -fopt-info-vec)
 endif()
 
-add_executable(SPH_SoA
-              app/main.cpp
-              ${SPH_CORE}/Kernel.cpp
-              ${SPH_CORE}/alg/ForceComputation.cpp
-              ${SPH_CORE}/alg/SoAForceComputation.cpp
-              ${SPH_CORE}/alg/SortedForceComputation.cpp
-              ${SPH_CORE}/container/Container.cpp
-              ${SPH_CORE}/container/SoAContainer.cpp
-              ${SPH_CORE}/container/Particle.cpp
-              ${SPH_CORE}/container/SortedContainer.cpp
-              ${SPH_CORE}/integrator/Integrator.cpp
-              ${SPH_CORE}/utils/Printer.cpp
-              ${SPH_CORE}/utils/CheckPointWriter.cpp
-              ${SPH_CORE}/utils/Timer.cpp
+set(SPH_SOURCES
+        ${SPH_CORE}/Kernel.cpp
+        ${SPH_CORE}/alg/ForceComputation.cpp
+        ${SPH_CORE}/alg/SoAForceComputation.cpp
+        ${SPH_CORE}/alg/SortedForceComputation.cpp
+        ${SPH_CORE}/container/Container.cpp
+        ${SPH_CORE}/container/SoAContainer.cpp
+        ${SPH_CORE}/container/Particle.cpp
+        ${SPH_CORE}/container/SortedContainer.cpp
+        ${SPH_CORE}/integrator/Integrator.cpp
+        ${SPH_CORE}/utils/Printer.cpp
+        ${SPH_CORE}/utils/CheckPointWriter.cpp
+        ${SPH_CORE}/utils/Timer.cpp
+)
+
+if(GPU)
+        list(APPEND SPH_SOURCES
+          ${SPH_CORE}/acceleration/CUDAKernels.cu
+          ${SPH_CORE}/acceleration/CUDAUtils.cu)
+endif()
+
+
+add_executable(cu-sim-sph.out
+              app/cu_main.cpp
+              ${SPH_SOURCES}
+        #       ${SPH_CORE}/Kernel.cpp
+        #       ${SPH_CORE}/alg/ForceComputation.cpp
+        #       ${SPH_CORE}/alg/SoAForceComputation.cpp
+        #       ${SPH_CORE}/alg/SortedForceComputation.cpp
+        #       ${SPH_CORE}/container/Container.cpp
+        #       ${SPH_CORE}/container/SoAContainer.cpp
+        #       ${SPH_CORE}/container/Particle.cpp
+        #       ${SPH_CORE}/container/SortedContainer.cpp
+        #       ${SPH_CORE}/integrator/Integrator.cpp
+        #       ${SPH_CORE}/utils/Printer.cpp
+        #       ${SPH_CORE}/utils/CheckPointWriter.cpp
+        #       ${SPH_CORE}/utils/Timer.cpp
               )
 
-target_include_directories(SPH_SoA PRIVATE ${SPH_CORE})
+target_include_directories(cu-sim-sph.out PRIVATE ${SPH_CORE})
+
+if(GPU)
+find_package(CUDAToolkit REQUIRED)
+target_link_libraries(cu-sim-sph.out PRIVATE CUDA::cudart)
+endif()
 
 cmake_print_variables(CMAKE_CXX_COMPILER)
 cmake_print_variables(CMAKE_BUILD_TYPE)
