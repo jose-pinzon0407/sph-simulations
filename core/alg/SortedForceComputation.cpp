@@ -1,6 +1,6 @@
 #include "SoAForceComputation.h"
 
-void SortedForceComputation::ApproximateDensity(SortedSoAContainer& particles){
+void SortedForceComputation::ApproximateDensity(SoAContainer& particles){
 
     size_t N = particles.Size();
     // std::vector<int> sorted_neighbor_counts;
@@ -96,7 +96,7 @@ void SortedForceComputation::ApproximateDensity(SortedSoAContainer& particles){
 }
 
 
-void SortedForceComputation::CalculatePressure(SortedSoAContainer& particles){
+void SortedForceComputation::CalculatePressure(SoAContainer& particles){
 
     size_t N = particles.Size();
 
@@ -109,12 +109,18 @@ void SortedForceComputation::CalculatePressure(SortedSoAContainer& particles){
     }
 }
 
-void SortedForceComputation::ComputeForces(SortedSoAContainer& particles){
+void SortedForceComputation::ComputeForces(SoAContainer& particles){
     Real mu=MU;
 
     ApproximateDensity(particles);
     CalculatePressure(particles);
 
+    // std::cout<<"[Host] host pressure: ";
+
+    // for(size_t i=0;i<particles.Size();++i){
+    //     std::cout<<pressure_field[i]<<" ";
+    // }
+    // std::cout<<std::endl;
     
     Real fg_y=-10.0;
     size_t N = particles.Size();
@@ -151,17 +157,17 @@ void SortedForceComputation::ComputeForces(SortedSoAContainer& particles){
         Real ry_i = soa_particles.ry[i];
         Real rz_i = soa_particles.rz[i];
 
-        for(int dx=-1;dx<=1;++dx){
-            for(int dy=-1;dy<=1;++dy){
+        for(int cx=-1;cx<=1;++cx){
+            for(int cy=-1;cy<=1;++cy){
 
                 Vec3i multi_index_j = multi_index_i;
                 
                 //iterate neighbors
-                multi_index_j[0]+=dx;
+                multi_index_j[0]+=cx;
 
                 if(multi_index_j[0] < 0 || multi_index_j[0] >= neighbor_search.GetCellsInDirectionX()) continue;
 
-                multi_index_j[1]+=dy;
+                multi_index_j[1]+=cy;
                 if(multi_index_j[1] < 0 || multi_index_j[1] >= neighbor_search.GetCellsInDirectionY()) continue;
 
                 int cell_j = neighbor_search.Flatten(multi_index_j);
@@ -227,92 +233,92 @@ void SortedForceComputation::ComputeForces(SortedSoAContainer& particles){
 
 }
 
-void SortedForceComputation::ComputeForces2(SortedSoAContainer& particles){
+// void SortedForceComputation::ComputeForces2(SoAContainer& particles){
 
-    Real mu = MU;
+//     Real mu = MU;
 
-    ApproximateDensity(particles);
-    CalculatePressure(particles);
-    Real fg_y = -10.0;
-    size_t N = particles.Size();
+//     ApproximateDensity(particles);
+//     CalculatePressure(particles);
+//     Real fg_y = -10.0;
+//     size_t N = particles.Size();
 
-    Particles& soa_particles = particles.GetParticles();
+//     Particles& soa_particles = particles.GetParticles();
 
-    for(size_t i=0;i<N;++i){
+//     for(size_t i=0;i<N;++i){
 
-        //Pressure force
-        Real fp_x=0.0;
-        Real fp_y=0.0;
-        Real fp_z=0.0;
+//         //Pressure force
+//         Real fp_x=0.0;
+//         Real fp_y=0.0;
+//         Real fp_z=0.0;
 
-        //Viscosity force
-        Real fv_x=0.0;
-        Real fv_y=0.0;
-        Real fv_z=0.0;
+//         //Viscosity force
+//         Real fv_x=0.0;
+//         Real fv_y=0.0;
+//         Real fv_z=0.0;
 
-        soa_particles.fx[i]=0.0;
-        soa_particles.fy[i]=fg_y;
-        soa_particles.fz[i]=0.0;
+//         soa_particles.fx[i]=0.0;
+//         soa_particles.fy[i]=fg_y;
+//         soa_particles.fz[i]=0.0;
 
-        Real vi_x = soa_particles.vx[i];
-        Real vi_y = soa_particles.vy[i];
-        Real vi_z = soa_particles.vz[i];
+//         Real vi_x = soa_particles.vx[i];
+//         Real vi_y = soa_particles.vy[i];
+//         Real vi_z = soa_particles.vz[i];
 
-        Real rho_i = soa_particles.density[i];
+//         Real rho_i = soa_particles.density[i];
 
-        for(size_t j=0;j<N;++j){
+//         for(size_t j=0;j<N;++j){
 
-            Real dx = soa_particles.rx[i]-soa_particles.rx[j];
-            Real dy = soa_particles.ry[i]-soa_particles.ry[j];
-            Real dz = soa_particles.rz[i]-soa_particles.rz[j];
+//             Real dx = soa_particles.rx[i]-soa_particles.rx[j];
+//             Real dy = soa_particles.ry[i]-soa_particles.ry[j];
+//             Real dz = soa_particles.rz[i]-soa_particles.rz[j];
 
-            Real r2 = dx*dx+dy*dy+dz*dz;
+//             Real r2 = dx*dx+dy*dy+dz*dz;
 
-            if(r2 > h2)continue;
+//             if(r2 > h2)continue;
 
-            Real r1 = std::sqrt(r2);
+//             Real r1 = std::sqrt(r2);
 
-            Real rho_j = soa_particles.density[j];
+//             Real rho_j = soa_particles.density[j];
 
-            //Forces of pressure kernel
-            if(r1>TOL){
-                Real pressure_multiplier = -0.5*(pressure_field[i]/(rho_i*rho_i)+pressure_field[j]/(rho_j*rho_j))*soa_particles.mass[j];
-                // Real pressure_multiplier = -0.5*(pressure_field[i]/(rho_i*rho_i)+pressure_field[j]/(rho_j*rho_j));
+//             //Forces of pressure kernel
+//             if(r1>TOL){
+//                 Real pressure_multiplier = -0.5*(pressure_field[i]/(rho_i*rho_i)+pressure_field[j]/(rho_j*rho_j))*soa_particles.mass[j];
+//                 // Real pressure_multiplier = -0.5*(pressure_field[i]/(rho_i*rho_i)+pressure_field[j]/(rho_j*rho_j));
 
-                Real h_r12=(h1-r1)*(h1-r1);
-                fp_x += -3.0*pressure_constant*h_r12/r1*dx*pressure_multiplier;
-                fp_y += -3.0*pressure_constant*h_r12/r1*dy*pressure_multiplier;
-                fp_z += -3.0*pressure_constant*h_r12/r1*dz*pressure_multiplier;
+//                 Real h_r12=(h1-r1)*(h1-r1);
+//                 fp_x += -3.0*pressure_constant*h_r12/r1*dx*pressure_multiplier;
+//                 fp_y += -3.0*pressure_constant*h_r12/r1*dy*pressure_multiplier;
+//                 fp_z += -3.0*pressure_constant*h_r12/r1*dz*pressure_multiplier;
             
             
-            }
+//             }
             
 
 
-            //Forces of viscosity kernel
+//             //Forces of viscosity kernel
 
-            Real dvx = soa_particles.vx[j]-vi_x;
-            Real dvy = soa_particles.vy[j]-vi_y;
-            Real dvz = soa_particles.vz[j]-vi_z;
-            Real viscosity_multiplier = mu/(soa_particles.density[j]*M_PI*h6)*45.0*(H-r1);
+//             Real dvx = soa_particles.vx[j]-vi_x;
+//             Real dvy = soa_particles.vy[j]-vi_y;
+//             Real dvz = soa_particles.vz[j]-vi_z;
+//             Real viscosity_multiplier = mu/(soa_particles.density[j]*M_PI*h6)*45.0*(H-r1);
 
-            fv_x += viscosity_multiplier*dvx;
-            fv_y += viscosity_multiplier*dvy;
-            fv_z += viscosity_multiplier*dvz;
-
-
-
-        }
+//             fv_x += viscosity_multiplier*dvx;
+//             fv_y += viscosity_multiplier*dvy;
+//             fv_z += viscosity_multiplier*dvz;
 
 
-        soa_particles.fx[i]+=fp_x;
-        soa_particles.fy[i]+=fp_y;
-        soa_particles.fz[i]+=fp_z;
 
-        soa_particles.fx[i]+=fv_x;
-        soa_particles.fy[i]+=fv_y;
-        soa_particles.fz[i]+=fv_z;
+//         }
 
-    }
 
-}
+//         soa_particles.fx[i]+=fp_x;
+//         soa_particles.fy[i]+=fp_y;
+//         soa_particles.fz[i]+=fp_z;
+
+//         soa_particles.fx[i]+=fv_x;
+//         soa_particles.fy[i]+=fv_y;
+//         soa_particles.fz[i]+=fv_z;
+
+//     }
+
+// }

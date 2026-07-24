@@ -61,6 +61,7 @@ set(SPH_SOURCES
         ${SPH_CORE}/alg/ForceComputation.cpp
         ${SPH_CORE}/alg/SoAForceComputation.cpp
         ${SPH_CORE}/alg/SortedForceComputation.cpp
+        ${SPH_CORE}/alg/NeighborSearch.cpp
         ${SPH_CORE}/container/Container.cpp
         ${SPH_CORE}/container/SoAContainer.cpp
         ${SPH_CORE}/container/Particle.cpp
@@ -78,28 +79,22 @@ if(GPU)
 endif()
 
 
-add_executable(cu-sim-sph.out
-              app/cu_main.cpp
+add_executable(sim-sph.out
               ${SPH_SOURCES}
-        #       ${SPH_CORE}/Kernel.cpp
-        #       ${SPH_CORE}/alg/ForceComputation.cpp
-        #       ${SPH_CORE}/alg/SoAForceComputation.cpp
-        #       ${SPH_CORE}/alg/SortedForceComputation.cpp
-        #       ${SPH_CORE}/container/Container.cpp
-        #       ${SPH_CORE}/container/SoAContainer.cpp
-        #       ${SPH_CORE}/container/Particle.cpp
-        #       ${SPH_CORE}/container/SortedContainer.cpp
-        #       ${SPH_CORE}/integrator/Integrator.cpp
-        #       ${SPH_CORE}/utils/Printer.cpp
-        #       ${SPH_CORE}/utils/CheckPointWriter.cpp
-        #       ${SPH_CORE}/utils/Timer.cpp
               )
+if(GPU)
+        target_sources(sim-sph.out PRIVATE app/cu_main.cpp)
 
-target_include_directories(cu-sim-sph.out PRIVATE ${SPH_CORE})
+else()
+        target_sources(sim-sph.out PRIVATE app/main.cpp)
+endif()
+
+
+target_include_directories(sim-sph.out PRIVATE ${SPH_CORE})
 
 if(GPU)
 find_package(CUDAToolkit REQUIRED)
-target_link_libraries(cu-sim-sph.out PRIVATE CUDA::cudart)
+target_link_libraries(sim-sph.out PRIVATE CUDA::cudart)
 endif()
 
 cmake_print_variables(CMAKE_CXX_COMPILER)

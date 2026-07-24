@@ -45,10 +45,9 @@ class SortedForceComputation{
         std::cout<<"[SortedForceComputation] pressure constant="<<pressure_constant<<std::endl;
     }
 
-    void ComputeForces(SortedSoAContainer& particles);
-    void ComputeForces2(SortedSoAContainer& particles);
-    void ApproximateDensity(SortedSoAContainer& particles);
-    void CalculatePressure(SortedSoAContainer& particles);
+    void ComputeForces(SoAContainer& particles);
+    void ApproximateDensity(SoAContainer& particles);
+    void CalculatePressure(SoAContainer& particles);
 
 
     protected:

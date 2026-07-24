@@ -17,6 +17,10 @@
 #include "utils/CheckPointWriter.h"
 #include "utils/Timer.h"
 
+#ifdef GPU
+#include "acceleration/CUDAKernels.cuh"
+#endif
+
 std::string StepHeader(int step, Container& particles, Domain& domain);
 
 Timer force_computation{"force_computation"};
@@ -25,7 +29,12 @@ Timer container_build{"container_build"};
 Timer main_loop{"main_loop"};
 
 int main(int argc, char** argv){
-    int steps=5;
+
+    #ifdef GPU
+    std::cout<<"[Build] Using GPU acceleration\n";
+    #endif
+
+    int steps=10;
     Real dt=0.005;
     Domain domain;
     domain.h_corner=Vec3d {10,20,0};
@@ -36,17 +45,17 @@ int main(int argc, char** argv){
 
     int N=10;
     // ParticleContainer container;
-    // SoAContainer container;
-    SortedSoAContainer container;
+    SoAContainer container;
+    // SortedSoAContainer container;
     ViscosityKernel kernel{H};
     
     Integrator integrator{dt,&domain};
 
     LatticeCreator lattice;
     lattice.yVol=0.9;
-    lattice.xVol=.5;
-    lattice.dX=0.25;
-    lattice.dY=0.25;
+    lattice.xVol=.9;
+    lattice.dX=0.125;
+    lattice.dY=0.125;
 
     lattice.CreateLattice(domain,container);
     neighbor_search.FindNeighbors(container);
@@ -57,12 +66,11 @@ int main(int argc, char** argv){
 
     // SoAForceComputation computation{H};
     SortedForceComputation computation{H,neighbor_search};
-
+    
 
     main_loop.Start();
     for(int i=1;i<steps;++i){
         
-        std::cout<<StepHeader(i,container,domain);
 
         integrator.UpdateVelocities(container);
         integrator.UpdatePositions(container);
@@ -73,10 +81,14 @@ int main(int argc, char** argv){
 
         checkpoint.WriteCheckPoint(i,container);
     
+        //prepare cuda copies
+
 
         force_computation.Start();
         computation.ComputeForces(container);
         force_computation.Stop();
+
+        std::cout<<StepHeader(i,container,domain);
 
     }
     main_loop.Stop();

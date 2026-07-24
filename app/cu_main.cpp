@@ -37,8 +37,9 @@ int main(int argc, char** argv){
     #ifdef GPU
     std::cout<<"[Build] Using GPU acceleration\n";
     #endif
+    
     int print_frequency=10;
-    int steps=100;
+    int steps=10;
     Real dt=0.005;
     Domain domain;
     domain.h_corner=Vec3d {10,20,0};
@@ -56,7 +57,7 @@ int main(int argc, char** argv){
 
     LatticeCreator lattice;
     lattice.yVol=0.9;
-    lattice.xVol=.8;
+    lattice.xVol=.9;
     lattice.dX=0.125;
     lattice.dY=0.125;
 
@@ -126,7 +127,9 @@ int main(int argc, char** argv){
         integrate_operations.Stop();
 
         checkpointing.Start();
-        // checkpoint.WriteCheckPoint(i,container);
+        if(i%print_frequency==0){
+            checkpoint.WriteCheckPoint(i,container);
+        }
         checkpointing.Stop();
 
         //I. the particle positions
@@ -141,7 +144,6 @@ int main(int argc, char** argv){
         cuCopyBufferToDevice(dev_buffers.dev_vy,particles.vy.data(),N);
 
         container_build.Start();
-
         cuFindNeighbors(blocks,threads,N,dev_buffers.particle_cell_id,dev_buffers.cell_start,dev_buffers.cell_end,nx,ny,cuda_constants.h1,dev_buffers.dev_rx,dev_buffers.dev_ry,dev_buffers.dev_fx,dev_buffers.dev_fy,dev_buffers.dev_vx,dev_buffers.dev_vy);
         container_build.Stop();
 
