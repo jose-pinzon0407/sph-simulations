@@ -9,7 +9,9 @@
 
 #include "alg/ForceComputation.h"
 #include "alg/SoAForceComputation.h"
+#include "alg/ListsForceComputation.h"
 #include "alg/NeighborSearch.h"
+#include "alg/NeighborLists.h"
 
 #include "integrator/Integrator.h"
 
@@ -53,7 +55,7 @@ int main(int argc, char** argv){
 
     LatticeCreator lattice;
     lattice.yVol=0.9;
-    lattice.xVol=.9;
+    lattice.xVol=.6;
     lattice.dX=0.125;
     lattice.dY=0.125;
 
@@ -63,11 +65,14 @@ int main(int argc, char** argv){
     CheckPointWriter checkpoint{"positions_step_",0};
     checkpoint.WriteCheckPoint(0,container);
 
+    
+    NeighborList list{H};
+    list.AssembleNeighborList(container,neighbor_search);
+    // list.SeeList();
 
     // SoAForceComputation computation{H};
-    SortedForceComputation computation{H,neighbor_search};
-    
-
+    // SortedForceComputation computation{H,neighbor_search};
+    ListsForceComputation computation{H,neighbor_search,list};
     main_loop.Start();
     for(int i=1;i<steps;++i){
         
@@ -77,6 +82,7 @@ int main(int argc, char** argv){
 
         container_build.Start();
         neighbor_search.FindNeighbors(container);
+        list.AssembleNeighborList(container,neighbor_search);
         container_build.Stop();
 
         checkpoint.WriteCheckPoint(i,container);

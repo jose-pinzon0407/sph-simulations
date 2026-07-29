@@ -16,6 +16,7 @@ message( STATUS "Project core is: ${SPH_CORE}")
 option(DOUBLE_PRECISION "Either single or double" ON)
 option(VECTORIZATION "Use auto vectorization" ON)
 option(GPU "Enable CUDA GPU acceleration" ON)
+option(OPENMP "Enable OpenMP" OFF)
 
 if(GPU)
 enable_language(CUDA)
@@ -23,6 +24,12 @@ set(CMAKE_CUDA_STANDARD 17)
 # set(CMAKE_CUDA_ARCHITECTURES native)
 add_compile_definitions(GPU=${GPU})
 message(STATUS "CUDA acceleration enabled")
+endif()
+
+if(OPENMP)
+add_compile_definitions(OPENMP=${OPENMP})
+message(STATUS "OpenMP Enabled")
+find_package(OpenMP)
 endif()
 
 set(default_build_type "Release")
@@ -61,6 +68,7 @@ set(SPH_SOURCES
         ${SPH_CORE}/alg/ForceComputation.cpp
         ${SPH_CORE}/alg/SoAForceComputation.cpp
         ${SPH_CORE}/alg/SortedForceComputation.cpp
+        ${SPH_CORE}/alg/ListsForceComputation.cpp
         ${SPH_CORE}/alg/NeighborSearch.cpp
         ${SPH_CORE}/container/Container.cpp
         ${SPH_CORE}/container/SoAContainer.cpp
@@ -70,6 +78,7 @@ set(SPH_SOURCES
         ${SPH_CORE}/utils/Printer.cpp
         ${SPH_CORE}/utils/CheckPointWriter.cpp
         ${SPH_CORE}/utils/Timer.cpp
+        ${SPH_CORE}/alg/NeighborLists.cpp
 )
 
 if(GPU)
@@ -90,7 +99,12 @@ else()
 endif()
 
 
+
 target_include_directories(sim-sph.out PRIVATE ${SPH_CORE})
+
+if(OpenMP_CXX_FOUND)
+target_link_libraries(sim-sph.out PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 if(GPU)
 find_package(CUDAToolkit REQUIRED)
