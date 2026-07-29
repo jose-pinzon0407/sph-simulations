@@ -36,13 +36,14 @@ int main(int argc, char** argv){
     
     #ifdef GPU
     std::cout<<"[Build] Using GPU acceleration\n";
+    cuOutputDeviceProperties();
     #endif
     
     int print_frequency=10;
     int steps=10;
     Real dt=0.005;
     Domain domain;
-    domain.h_corner=Vec3d {10,20,0};
+    domain.h_corner=Vec3d {40,50,0};
     domain.l_corner=Vec3d {0,0,0};
     NeighborSearch neighbor_search{domain,H};
 
@@ -173,6 +174,13 @@ int main(int argc, char** argv){
                               dev_buffers.cell_start,dev_buffers.cell_end,dev_buffers.density,dev_buffers.pressure,
                               cuda_constants);
         force_computation.Stop();
+
+        cuMeasureNeighborsPerParticle(blocks,threads,N,
+                                        dev_buffers.dev_rx,dev_buffers.dev_ry,
+                                        dev_buffers.particle_cell_id,
+                                        num_cells,nx,ny,
+                                        dev_buffers.cell_start,dev_buffers.cell_end,
+                                        cuda_constants);
 
 
         std::cout<<StepHeader(i,container,domain);

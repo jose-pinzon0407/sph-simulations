@@ -189,16 +189,23 @@ void cuComputeForces(int N, Real* rx, Real* ry, Real* fx, Real* fy, Real* vx, Re
                 Real dy = riy-ry[j];
 
                 Real r2 = dx*dx + dy*dy;
-                
+                              
                 if(r2>kernel_constants.h2)continue;
 
 
-                Real r1 = sqrt(r2);
-                Real inv_r1 = 1.0/r1;
-                if(r1>TOL){
-                    Real rho_j=rho[j];
+                Real pj= pressure[j];  
+                Real rho_j=rho[j];
+                // Real r1 = sqrt(r2);
+                // Real inv_r1 = 1.0/r1;
+
+                Real r1=0.0;
+                // 
+                // 
+                if(r2>TOL*TOL){
+                    Real inv_r1 = rsqrt(r2);
+                    Real r1 = r2*inv_r1;
                     //pressure forces
-                    Real pressure_multiplier = -0.5*(p_rho_i2+pressure[j]/(rho_j*rho_j));
+                    Real pressure_multiplier = -0.5*(p_rho_i2+pj/(rho_j*rho_j));
 
                     Real h1_r12= (kernel_constants.h1-r1)*(kernel_constants.h1-r1);
 
@@ -209,7 +216,7 @@ void cuComputeForces(int N, Real* rx, Real* ry, Real* fx, Real* fy, Real* vx, Re
                 Real dvx = vx[j]-vix;
                 Real dvy = vy[j]-viy;
 
-                Real viscosity_multiplier = kernel_constants.viscosity_constant/rho[j]*(kernel_constants.h1-r1);
+                Real viscosity_multiplier = kernel_constants.viscosity_constant/rho_j*(kernel_constants.h1-r1);
 
                 fv_x += viscosity_multiplier*dvx;
                 fv_y += viscosity_multiplier*dvy;

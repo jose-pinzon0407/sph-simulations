@@ -115,18 +115,12 @@ void SortedForceComputation::ComputeForces(SoAContainer& particles){
     ApproximateDensity(particles);
     CalculatePressure(particles);
 
-    // std::cout<<"[Host] host pressure: ";
-
-    // for(size_t i=0;i<particles.Size();++i){
-    //     std::cout<<pressure_field[i]<<" ";
-    // }
-    // std::cout<<std::endl;
-    
     Real fg_y=-10.0;
     size_t N = particles.Size();
 
     Particles& soa_particles = particles.GetParticles();
 
+    #pragma omp parallel for schedule(static)
     for(size_t i=0;i<N;++i){
 
         uint cell_i = particles.GetParticleCellIndex(i);

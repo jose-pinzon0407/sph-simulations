@@ -39,6 +39,8 @@ struct cuConstants{
 
 };  
 
+void cuOutputDeviceProperties();
+
 void cuFindNeighbors(int blocks, int threads
                     ,int N
                     ,int* particle_cell_index
@@ -68,6 +70,8 @@ void cuLaunchApproximateDensityKernel(int blocks, int threads, int N, Real* rx, 
 void cuLaunchComputePressureKernel(int blocks, int threads, int N, Real* rho, Real* pressure);
 
 void cuLaunchComputeForces(int blocks, int threads, int N, Real* rx, Real* ry, Real* fx, Real* fy, Real* vx, Real* vy, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, Real* rho, Real* pressure, cuConstants kernel_constants);
+
+void cuMeasureNeighborsPerParticle(int blocks, int threads, int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, cuConstants kernel_constants);
 
 struct cuBuffers{
     Real* dev_rx=nullptr;
