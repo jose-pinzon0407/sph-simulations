@@ -15,9 +15,11 @@
 
 #include "integrator/Integrator.h"
 
+#include "parallel/OMPFunctions.h"
 
 #include "utils/CheckPointWriter.h"
-#include "utils/Timer.h"
+#include "utils/TimerManager.h"
+#include "utils/InputParser.h"
 
 #ifdef GPU
 #include "acceleration/CUDAKernels.cuh"
@@ -25,84 +27,106 @@
 
 std::string StepHeader(int step, Container& particles, Domain& domain);
 
-Timer force_computation{"force_computation"};
-Timer density_approximation{"density_approximation"};
-Timer container_build{"container_build"};
-Timer main_loop{"main_loop"};
 
 int main(int argc, char** argv){
+
+    InputParser parser;
+    parser.ReadInputFile("example.txt");
+
+    TimerManager timers;
+
+    timers.AddTimer("main_loop");
+    timers.AddTimer("force_computation");
+    timers.AddTimer("container_build");
+    timers.Init();
+
+    #ifdef OPENMP
+    OMPConfiguration();
+    #endif
 
     #ifdef GPU
     std::cout<<"[Build] Using GPU acceleration\n";
     #endif
 
-    int steps=10;
-    Real dt=0.005;
+    int steps=parser.GetIntParameter("steps");
+    Real dt=parser.GetRealParameter("dt");
     Domain domain;
-    domain.h_corner=Vec3d {10,20,0};
-    domain.l_corner=Vec3d {0,0,0};
+    {
+        Real hx=parser.GetRealParameter("domain_x");
+        Real hy=parser.GetRealParameter("domain_y");
+        domain.h_corner=Vec3d{hx,hy,0};
+        domain.l_corner=Vec3d{0,0,0};
+    }
+
+
     NeighborSearch neighbor_search{domain,H};
-
-    std::cout<<"[Domain] Length:"<<domain.GetLength()<<std::endl;
-
-    int N=10;
+    NeighborList list{H};
     // ParticleContainer container;
     SoAContainer container;
-    // SortedSoAContainer container;
+
     ViscosityKernel kernel{H};
     
     Integrator integrator{dt,&domain};
-
+    CheckPointWriter checkpoint{"positions_step_",parser.GetIntParameter("checkpoint_write_frequency")};
     LatticeCreator lattice;
-    lattice.yVol=0.9;
-    lattice.xVol=.6;
-    lattice.dX=0.125;
-    lattice.dY=0.125;
+    lattice.xVol=parser.GetRealParameter("lattice_xvol");
+    lattice.yVol=parser.GetRealParameter("lattice_yvol");
+    lattice.dX=parser.GetRealParameter("lattice_dx");
+    lattice.dY=parser.GetRealParameter("lattice_dy");
 
     lattice.CreateLattice(domain,container);
+
+    std::cout<<"[Configuration] Domain size: "<<domain.GetLength()<<"\n";
+    std::cout<<"[Configuration] Particles="<<container.Size()<<"\n";
+    std::cout<<"[Configuration] steps="<<steps<<"\n";
+    std::cout<<"[Configuration] dt="<<dt<<"\n";
+    std::cout<<"[Configuration] dX="<<lattice.dX<<"\n";
+    std::cout<<"[Configuration] dY="<<lattice.dY<<"\n";
+    std::cout<<"[Configuration] xVol="<<lattice.xVol<<"\n";
+    std::cout<<"[Configuration] yVol="<<lattice.yVol<<"\n";
+    std::cout<<"[Configuration] output frequency="<<parser.GetIntParameter("checkpoint_write_frequency")<<"\n";
+
+    std::cout<<"[Configuration] Configuration complete."<<std::endl;
+
     neighbor_search.FindNeighbors(container);
-
-    CheckPointWriter checkpoint{"positions_step_",0};
-    checkpoint.WriteCheckPoint(0,container);
-
-    
-    NeighborList list{H};
     list.AssembleNeighborList(container,neighbor_search);
-    // list.SeeList();
+
+
+    std::cout<<"[Simulation] Output step 0 positions\n";
+    checkpoint.WriteCheckPoint(0,container);
+    
 
     // SoAForceComputation computation{H};
     // SortedForceComputation computation{H,neighbor_search};
     ListsForceComputation computation{H,neighbor_search,list};
-    main_loop.Start();
+    timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
 
         integrator.UpdateVelocities(container);
         integrator.UpdatePositions(container);
 
-        container_build.Start();
+        timers.Start("container_build");
         neighbor_search.FindNeighbors(container);
         list.AssembleNeighborList(container,neighbor_search);
-        container_build.Stop();
+        timers.Stop("container_build");
 
         checkpoint.WriteCheckPoint(i,container);
-    
-        //prepare cuda copies
 
 
-        force_computation.Start();
+        timers.Start("force_computation");
         computation.ComputeForces(container);
-        force_computation.Stop();
+        timers.Stop("force_computation");
 
         std::cout<<StepHeader(i,container,domain);
 
     }
-    main_loop.Stop();
 
-    std::cout<<"Main loop ="<<main_loop.GetTotalTimeInSeconds()<<" s"<<std::endl;
-    std::cout<<force_computation.GetName()<<"="<<force_computation.GetTotalTimeInSeconds()<<"s"<<std::endl;
-    std::cout<<density_approximation.GetName()<<"="<<density_approximation.GetTotalTimeInSeconds()<<"s"<<std::endl;
-    std::cout<<container_build.GetName()<<"="<<container_build.GetTotalTimeInSeconds()<<"s"<<std::endl;
+    int N=container.Size();
+    timers.Stop("main_loop");
+    timers.OutputTimersToFile(N,steps);
+
+    timers.PrintTimers();
 
     return 0;
 }
