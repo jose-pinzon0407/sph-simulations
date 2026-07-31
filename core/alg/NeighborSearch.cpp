@@ -1,4 +1,4 @@
-#include "NeighborSearch.h"#pragma once
+#include "NeighborSearch.h"
 
 #include "ConfigVariables.hpp"
 #include "Domain.h"
@@ -13,35 +13,10 @@ NeighborSearch::NeighborSearch(Domain& domain, Real cell_size){
 void NeighborSearch::FindNeighbors(SoAContainer& particles){
     size_t num_particles = particles.Size();
 
-    // for(size_t i=0;i<num_particles;++i){
-    //     Real rxi = particles.GetParticles().rx[i];
-    //     Real ryi = particles.GetParticles().ry[i];
-    //     Real rzi = particles.GetParticles().rz[i];
-
-    //     if(rxi < 0.0) std::cout<<"Out of domain\n";
-    //     if(ryi < 0.0) std::cout<<"Out of domain\n";
-    //     if(rzi < 0.0) std::cout<<"Out of domain\n";
-
-    //     int ci0 = std::floor(rxi/grid.cell_size);
-    //     int ci1 = std::floor(ryi/grid.cell_size);
-    //     int ci2 = std::floor(rzi/grid.cell_size);
-
-    //     ci0 = std::min(ci0, grid.nx-1);
-    //     ci1 = std::min(ci1, grid.ny-1);
-    //     ci2 = std::min(ci2,grid.nz-1);
-
-    //     // int ci0 = (rxi/grid.cell_size);
-    //     // int ci1 = (ryi/grid.cell_size);
-    //     // int ci2 = (rzi/grid.cell_size);
-
-    //     uint idx = ci0 + ci1*grid.nx;
-    //     particles.SetParticleCellIndex(i,idx);
-
-    // }
     SetParticleCellIds(particles);
     Sort(particles);
     SetCellRanges(num_particles,particles);
-    OutputOrder(particles);
+    // OutputOrder(particles);
     
 }
 
@@ -50,6 +25,7 @@ void NeighborSearch::SetParticleCellIds(SoAContainer& container){
     size_t num_particles=container.Size();
     auto& particles = container.GetParticles();
 
+    #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<num_particles;++i){
         Real rxi = particles.rx[i];
         Real ryi = particles.ry[i];

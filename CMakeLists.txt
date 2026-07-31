@@ -18,6 +18,13 @@ option(VECTORIZATION "Use auto vectorization" ON)
 option(GPU "Enable CUDA GPU acceleration" ON)
 option(OPENMP "Enable OpenMP" OFF)
 
+set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/")
+message( STATUS "Project config. directory is: ${CONFIG_DIR}")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Settings.h.in 
+               ${CONFIG_DIR}/Settings.h
+               @ONLY)
+
 if(GPU)
 enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 17)
@@ -78,6 +85,8 @@ set(SPH_SOURCES
         ${SPH_CORE}/utils/Printer.cpp
         ${SPH_CORE}/utils/CheckPointWriter.cpp
         ${SPH_CORE}/utils/Timer.cpp
+        ${SPH_CORE}/utils/TimerManager.cpp
+        ${SPH_CORE}/utils/InputParser.cpp
         ${SPH_CORE}/alg/NeighborLists.cpp
 )
 
@@ -101,6 +110,7 @@ endif()
 
 
 target_include_directories(sim-sph.out PRIVATE ${SPH_CORE})
+target_include_directories(sim-sph.out PRIVATE ${CONFIG_DIR})
 
 if(OpenMP_CXX_FOUND)
 target_link_libraries(sim-sph.out PRIVATE OpenMP::OpenMP_CXX)

@@ -56,7 +56,7 @@ void ListsForceComputation::ComputeForces(SoAContainer& particles){
     size_t N = particles.Size();
     Real fg_y=-10.0;
 
-    
+    #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
         std::vector<int>& i_neighbors = neighbor_list.GetNeighborsOfParticle(i);
 

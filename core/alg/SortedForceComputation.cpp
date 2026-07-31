@@ -120,7 +120,7 @@ void SortedForceComputation::ComputeForces(SoAContainer& particles){
 
     Particles& soa_particles = particles.GetParticles();
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
 
         uint cell_i = particles.GetParticleCellIndex(i);

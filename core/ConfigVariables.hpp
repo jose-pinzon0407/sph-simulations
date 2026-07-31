@@ -13,3 +13,5 @@ using Real=float;
 #define RHO_0 25.0
 #define MU 0.001
 #define DT 0.005
+
+#include "../config/Settings.h"
