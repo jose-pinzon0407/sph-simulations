@@ -3,7 +3,7 @@
 #include<vector>
 #include "container/SoAContainer.h"
 #include "alg/NeighborSearch.h"
-
+#include "encoders/Encoder.h"
 using neighbors = std::vector<std::vector<int>>;
 
 class NeighborList{
@@ -29,8 +29,13 @@ class NeighborList{
         }
     }
 
+    Codifier& GetCodifier(){
+        return encoder;
+    }
+
     protected:
     Real h2;
     std::vector<std::vector<int>> neighbor_lists;
+    Codifier encoder;
 
 };

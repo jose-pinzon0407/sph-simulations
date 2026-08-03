@@ -11,6 +11,10 @@ void NeighborList::AssembleNeighborList(SoAContainer& container, NeighborSearch&
     size_t N = container.Size();
     Resize(N);
 
+    //prepare codifier
+    encoder.ResetCodifier();
+    encoder.Init(N);
+
     #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
         uint cell_i = container.GetParticleCellIndex(i);
@@ -63,7 +67,7 @@ void NeighborList::AssembleNeighborList(SoAContainer& container, NeighborSearch&
         std::sort(neighbor_lists[i].begin(),neighbor_lists[i].end());
 
         //Encode into differences
-        
+        encoder.Encode(i,neighbor_lists[i]);
 
     }
 }

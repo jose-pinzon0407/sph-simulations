@@ -88,6 +88,7 @@ set(SPH_SOURCES
         ${SPH_CORE}/utils/TimerManager.cpp
         ${SPH_CORE}/utils/InputParser.cpp
         ${SPH_CORE}/alg/NeighborLists.cpp
+        ${SPH_CORE}/alg/EncodedListsForceComputation.cpp
 )
 
 if(GPU)
