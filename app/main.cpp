@@ -13,6 +13,8 @@
 #include "alg/NeighborSearch.h"
 #include "alg/NeighborLists.h"
 
+#include "alg/EncodedListsForceComputation.h"
+
 #include "integrator/Integrator.h"
 
 #include "parallel/OMPFunctions.h"
@@ -99,6 +101,7 @@ int main(int argc, char** argv){
     // SoAForceComputation computation{H};
     // SortedForceComputation computation{H,neighbor_search};
     ListsForceComputation computation{H,neighbor_search,list};
+    // EncodedListsForceComputation computation{H,neighbor_search,list};
     timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
