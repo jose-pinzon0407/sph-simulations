@@ -1,10 +1,5 @@
 #include "NeighborSearch.h"
 
-#include "ConfigVariables.hpp"
-#include "Domain.h"
-#include "container/SortedContainer.h"
-#include<fstream>
-#include<functional>
 
 NeighborSearch::NeighborSearch(Domain& domain, Real cell_size){
     SetGrid(domain,cell_size);
@@ -54,29 +49,30 @@ void NeighborSearch::SetParticleCellIds(SoAContainer& container){
 
 }
 
-    void NeighborSearch::OutputOrder(SoAContainer& particles){
-        std::ofstream output;            
-        std::string name = "order_step_"+std::to_string(step)+".txt";
-        output.open(name.c_str());
-        for(size_t i=0;i<particles.Size();++i){
-                output<<i<<"\t"<<particles.GetParticleIndex(i)<<"\t"<<particles.GetParticleCellIndex(i)<<"\t";
-                output<<particles.pos(i)[0]<<"\t"<<particles.pos(i)[1];
-                output<<std::endl;
-        }
-        output.close();
-        name = "cell_order_step_"+std::to_string(step)+".txt";
-        output.open(name.c_str());
-
-        for(size_t i=0;i<grid.GetTotalCells();++i){
-            output<<"Cell "<<i<<"["<<grid.cell_start[i]<<","<<grid.cell_end[i]<<"]"<<std::endl;
-        }
-
-        output.close();
-
-        step++;
+void NeighborSearch::OutputOrder(SoAContainer& particles){
+    std::ofstream output;            
+    std::string name = "order_step_"+std::to_string(step)+".txt";
+    output.open(name.c_str());
+    for(size_t i=0;i<particles.Size();++i){
+        output<<i<<"\t"<<particles.GetParticleIndex(i)<<"\t"<<particles.GetParticleCellIndex(i)<<"\t";
+        output<<particles.pos(i)[0]<<"\t"<<particles.pos(i)[1];
+        output<<std::endl;
     }
 
-    void NeighborSearch::SetGrid(Domain& domain, Real radius){
+    output.close();
+    name = "cell_order_step_"+std::to_string(step)+".txt";
+    output.open(name.c_str());
+
+    for(size_t i=0;i<grid.GetTotalCells();++i){
+        output<<"Cell "<<i<<"["<<grid.cell_start[i]<<","<<grid.cell_end[i]<<"]"<<std::endl;
+    }
+
+    output.close();
+
+    step++;
+}
+
+void NeighborSearch::SetGrid(Domain& domain, Real radius){
         Vec3d box_length = domain.GetLength();
 
         grid.cell_size = radius;
@@ -89,125 +85,126 @@ void NeighborSearch::SetParticleCellIds(SoAContainer& container){
         std::cout<<"[NeighborSearch] Using uniform grid with: "<<grid.GetTotalCells()<<" cells."<<std::endl;
         std::cout<<"[NeighborSearch] Cells per direction: "<<grid.nx<<","<<grid.ny<<","<<grid.nz<<std::endl;
         std::cout<<"[NeighborSearch] Cell size: "<<grid.cell_size<<std::endl;
-    }
+}
 
-    void NeighborSearch::SetCellRanges(uint N, SoAContainer& particles){
-        grid.RefillCellRanges();
-        for(uint i=0;i<N;++i){
-            uint cell_i_id = particles.GetParticleCellIndex(i);
-            if(i==0 || cell_i_id != particles.GetParticleCellIndex(i-1)){
-                grid.cell_start[cell_i_id] = i;
-            }
-
-            if(i==(N-1) || cell_i_id != particles.GetParticleCellIndex(i+1)){
-                grid.cell_end[cell_i_id]= i+1;//open interval
-            }
+void NeighborSearch::SetCellRanges(uint N, SoAContainer& particles){
+    grid.RefillCellRanges();
+    for(uint i=0;i<N;++i){
+        uint cell_i_id = particles.GetParticleCellIndex(i);
+        if(i==0 || cell_i_id != particles.GetParticleCellIndex(i-1)){
+            grid.cell_start[cell_i_id] = i;
         }
 
-
-        SortValidation(N);
+        if(i==(N-1) || cell_i_id != particles.GetParticleCellIndex(i+1)){
+            grid.cell_end[cell_i_id]= i+1;//open interval
+        }
     }
 
-    void NeighborSearch::SortValidation(uint N){
-        int accum_particles=0;
-        for(size_t i=0;i<grid.GetTotalCells();++i){
-            if(grid.cell_end[i] > -1 && grid.cell_start[i]> -1)
-                accum_particles += (grid.cell_end[i]-grid.cell_start[i]);
-        }
+
+    SortValidation(N);
+}
+
+void NeighborSearch::SortValidation(uint N){
+    int accum_particles=0;
+    for(size_t i=0;i<grid.GetTotalCells();++i){
+        if(grid.cell_end[i] > -1 && grid.cell_start[i]> -1)
+            accum_particles += (grid.cell_end[i]-grid.cell_start[i]);
+    }
         // std::cout<<"[NeighborSearch] Validation, counted particles "<<accum_particles<<" vs. N="<<N<<std::endl;
-    }
+}
 
-    void NeighborSearch::SortParticleIds(SoAContainer& container){
-        auto& particles = container.GetParticles();
+void NeighborSearch::SortParticleIds(SoAContainer& container){
+    auto& particles = container.GetParticles();
 
-        std::sort(particles.particle_id.begin(),particles.particle_id.end(),[&](uint a, uint b){
+    std::sort(particles.particle_id.begin(),particles.particle_id.end(),[&](uint a, uint b){
         return particles.cell_id[a]<particles.cell_id[b];
-    }
+              }
     );
 
-    }
+}
 
-    void NeighborSearch::SortContainer(SoAContainer& container){
-        int N = container.Size();
-        ScalarField ordered_density;
-        ordered_density.resize(N);
+void NeighborSearch::SortContainer(SoAContainer& container){
+    int N = container.Size();
+    ScalarField ordered_density;
+    ordered_density.resize(N);
 
 
 
-        std::vector<uint> cell_id_ordered;
-        cell_id_ordered.resize(N);
+    std::vector<uint> cell_id_ordered;
+    cell_id_ordered.resize(N);
 
-        std::vector<uint> particle_id_ordered;
-        particle_id_ordered.resize(N);
+    std::vector<uint> particle_id_ordered;
+    particle_id_ordered.resize(N);
         
-        std::vector<Real> ordered_rx;
-        std::vector<Real> ordered_ry;
-        std::vector<Real> ordered_rz;
+    std::vector<Real> ordered_rx;
+    std::vector<Real> ordered_ry;
+    std::vector<Real> ordered_rz;
 
-        ordered_rx.resize(N);
-        ordered_ry.resize(N);
-        ordered_rz.resize(N);
-
-
-        std::vector<Real> ordered_vx;
-        std::vector<Real> ordered_vy;
-        std::vector<Real> ordered_vz;
-
-        ordered_vx.resize(N);
-        ordered_vy.resize(N);
-        ordered_vz.resize(N);
-
-        std::vector<Real> ordered_fx;
-        std::vector<Real> ordered_fy;
-        std::vector<Real> ordered_fz;
+    ordered_rx.resize(N);
+    ordered_ry.resize(N);
+    ordered_rz.resize(N);
 
 
-        ordered_fx.resize(N);
-        ordered_fy.resize(N);
-        ordered_fz.resize(N);
+    std::vector<Real> ordered_vx;
+    std::vector<Real> ordered_vy;
+    std::vector<Real> ordered_vz;
 
-        auto& particles = container.GetParticles();
-        for(size_t i=0;i<N;++i){
+    ordered_vx.resize(N);
+    ordered_vy.resize(N);
+    ordered_vz.resize(N);
+
+    std::vector<Real> ordered_fx;
+    std::vector<Real> ordered_fy;
+    std::vector<Real> ordered_fz;
+
+
+    ordered_fx.resize(N);
+    ordered_fy.resize(N);
+    ordered_fz.resize(N);
+
+    auto& particles = container.GetParticles();
+    
+    for(size_t i=0;i<N;++i){
                 
-            uint old_particle_index = particles.particle_id[i];
-            //reorder rho
-            ordered_density[i] = particles.density[old_particle_index];
-            //reorder r
-            ordered_rx[i] = particles.rx[old_particle_index];
-            ordered_ry[i] = particles.ry[old_particle_index];
-            ordered_rz[i] = particles.rz[old_particle_index];
-            //reorder v
-            ordered_vx[i] = particles.vx[old_particle_index];
-            ordered_vy[i] = particles.vy[old_particle_index];
-            ordered_vz[i] = particles.vz[old_particle_index];
-            //reorder f
-            ordered_fx[i] = particles.fx[old_particle_index];
-            ordered_fy[i] = particles.fy[old_particle_index];
-            ordered_fz[i] = particles.fz[old_particle_index];
-            //reorder cell_id
-            cell_id_ordered[i] = particles.cell_id[old_particle_index];
-            //reorder particle id
-            particles.particle_id[i]=i;
-
-        }
-
-        //assign vectors
-        particles.density = ordered_density;
-
-        particles.rx = ordered_rx;
-        particles.ry = ordered_ry;
-        particles.rz = ordered_rz;
-
-        particles.vx = ordered_vx;
-        particles.vy = ordered_vy;
-        particles.vz = ordered_vz;
-            
-        particles.fx = ordered_fx;
-        particles.fy = ordered_fy;
-        particles.fz = ordered_fz;
-        particles.cell_id=cell_id_ordered;
+        uint old_particle_index = particles.particle_id[i];
+        //reorder rho
+        ordered_density[i] = particles.density[old_particle_index];
+        //reorder r
+        ordered_rx[i] = particles.rx[old_particle_index];
+        ordered_ry[i] = particles.ry[old_particle_index];
+        ordered_rz[i] = particles.rz[old_particle_index];
+        //reorder v
+        ordered_vx[i] = particles.vx[old_particle_index];
+        ordered_vy[i] = particles.vy[old_particle_index];
+        ordered_vz[i] = particles.vz[old_particle_index];
+        //reorder f
+        ordered_fx[i] = particles.fx[old_particle_index];
+        ordered_fy[i] = particles.fy[old_particle_index];
+        ordered_fz[i] = particles.fz[old_particle_index];
+        //reorder cell_id
+        cell_id_ordered[i] = particles.cell_id[old_particle_index];
+        //reorder particle id
+        particles.particle_id[i]=i;
 
     }
+
+    //assign vectors
+    particles.density = ordered_density;
+
+    particles.rx = ordered_rx;
+    particles.ry = ordered_ry;
+    particles.rz = ordered_rz;
+
+    particles.vx = ordered_vx;
+    particles.vy = ordered_vy;
+    particles.vz = ordered_vz;
+            
+    particles.fx = ordered_fx;
+    particles.fy = ordered_fy;
+    particles.fz = ordered_fz;
+    particles.cell_id=cell_id_ordered;
+
+}
 
 void NeighborSearch::Sort(SoAContainer& container){
     SortParticleIds(container);

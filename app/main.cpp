@@ -12,7 +12,7 @@
 #include "alg/ListsForceComputation.h"
 #include "alg/NeighborSearch.h"
 #include "alg/NeighborLists.h"
-
+#include "container/ordering/MortonNeighborSearch.h"
 #include "alg/EncodedListsForceComputation.h"
 
 #include "integrator/Integrator.h"
@@ -26,6 +26,11 @@
 #ifdef GPU
 #include "acceleration/CUDAKernels.cuh"
 #endif
+
+
+#include "container/ordering/MortonNeighborLists.h"
+#include "container/ordering/MortonNeighborSearch.h"
+#include "container/ordering/MortonForceComputation.h"
 
 std::string StepHeader(int step, Container& particles, Domain& domain);
 
@@ -61,8 +66,11 @@ int main(int argc, char** argv){
     }
 
 
-    NeighborSearch neighbor_search{domain,H};
-    NeighborList list{H};
+    // NeighborSearch neighbor_search{domain,H};
+    MortonNeighborSearch neighbor_search{domain,H};
+
+    // NeighborList list{H};
+    MortonNeighborList list{H};
     // ParticleContainer container;
     SoAContainer container;
 
@@ -91,7 +99,7 @@ int main(int argc, char** argv){
     std::cout<<"[Configuration] Configuration complete."<<std::endl;
 
     neighbor_search.FindNeighbors(container);
-    list.AssembleNeighborList(container,neighbor_search);
+    // list.AssembleNeighborList(container,neighbor_search);
 
 
     std::cout<<"[Simulation] Output step 0 positions\n";
@@ -100,8 +108,10 @@ int main(int argc, char** argv){
 
     // SoAForceComputation computation{H};
     // SortedForceComputation computation{H,neighbor_search};
-    ListsForceComputation computation{H,neighbor_search,list};
+    // ListsForceComputation computation{H,neighbor_search,list};
     // EncodedListsForceComputation computation{H,neighbor_search,list};
+
+    MortonSortedForceComputation computation{H,neighbor_search};
     timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
@@ -111,7 +121,7 @@ int main(int argc, char** argv){
 
         timers.Start("container_build");
         neighbor_search.FindNeighbors(container);
-        list.AssembleNeighborList(container,neighbor_search);
+        // list.AssembleNeighborList(container,neighbor_search);
         timers.Stop("container_build");
 
         checkpoint.WriteCheckPoint(i,container);

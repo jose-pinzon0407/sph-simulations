@@ -81,6 +81,9 @@ set(SPH_SOURCES
         ${SPH_CORE}/container/SoAContainer.cpp
         ${SPH_CORE}/container/Particle.cpp
         ${SPH_CORE}/container/SortedContainer.cpp
+        ${SPH_CORE}/container/ordering/MortonNeighborSearch.cpp
+        ${SPH_CORE}/container/ordering/MortonNeighborLists.cpp
+        ${SPH_CORE}/container/ordering/MortonForceComputation.cpp
         ${SPH_CORE}/integrator/Integrator.cpp
         ${SPH_CORE}/utils/Printer.cpp
         ${SPH_CORE}/utils/CheckPointWriter.cpp

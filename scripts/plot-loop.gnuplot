@@ -17,10 +17,10 @@ ylim=20
 set object rectangle from 0,0 to xlim,ylim fs empty border 3
 
 while(1){
-    do for[i=0:steps-1]{
+    do for[i=0:steps-1:10]{
         set title sprintf("Iteration %d",i)
         plot sprintf("../build/positions_step_%d.txt",i)  with points pt 7 ps 1 notitle
-        pause 0.01
+        pause 0.08
     }
 }
 
