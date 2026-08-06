@@ -5,7 +5,7 @@
 #include "container/Lattice.h"
 #include "container/Container.h"
 #include "container/SoAContainer.h"
-#include "container/SortedContainer.h"
+// #include "container/SortedContainer.h"
 
 #include "alg/ForceComputation.h"
 #include "alg/SoAForceComputation.h"

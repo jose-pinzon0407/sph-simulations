@@ -80,7 +80,6 @@ set(SPH_SOURCES
         ${SPH_CORE}/container/Container.cpp
         ${SPH_CORE}/container/SoAContainer.cpp
         ${SPH_CORE}/container/Particle.cpp
-        ${SPH_CORE}/container/SortedContainer.cpp
         ${SPH_CORE}/container/ordering/MortonNeighborSearch.cpp
         ${SPH_CORE}/container/ordering/MortonNeighborLists.cpp
         ${SPH_CORE}/container/ordering/MortonForceComputation.cpp

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "container/SoAContainer.h"
-#include "container/SortedContainer.h"
 #include "alg/NeighborSearch.h"
 
 

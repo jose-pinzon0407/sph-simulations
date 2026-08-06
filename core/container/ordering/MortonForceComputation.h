@@ -1,7 +1,6 @@
 #pragma once
 
 #include "container/SoAContainer.h"
-#include "container/SortedContainer.h"
 #include "container/ordering/MortonNeighborSearch.h"
 
 class MortonSortedForceComputation{

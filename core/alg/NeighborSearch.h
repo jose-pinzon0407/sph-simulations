@@ -2,7 +2,7 @@
 
 #include "ConfigVariables.hpp"
 #include "Domain.h"
-#include "container/SortedContainer.h"
+#include "container/SoAContainer.h"
 #include<fstream>
 #include<functional>
 
