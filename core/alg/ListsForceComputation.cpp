@@ -6,7 +6,8 @@ void ListsForceComputation::ApproximateDensity(SoAContainer& particles){
     size_t N = particles.Size();
 
     for(size_t i=0;i<N;++i){
-        std::vector<int>& i_neighbors = neighbor_list.GetNeighborsOfParticle(i);
+        std::vector<int>& i_neighbors = neighbor_list[i];
+        // std::vector<int>& i_neighbors = neighbor_list.GetNeighborsOfParticle(i);
 
         Real accum_rho_i=0.0;
 
@@ -58,7 +59,8 @@ void ListsForceComputation::ComputeForces(SoAContainer& particles){
 
     #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
-        std::vector<int>& i_neighbors = neighbor_list.GetNeighborsOfParticle(i);
+        std::vector<int>& i_neighbors = neighbor_list[i];
+        // std::vector<int>& i_neighbors = neighbor_list.GetNeighborsOfParticle(i);
 
         //Pressure force
         Real fp_x=0.0;

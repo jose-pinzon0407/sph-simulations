@@ -5,15 +5,12 @@
 #include "container/Lattice.h"
 #include "container/Container.h"
 #include "container/SoAContainer.h"
-// #include "container/SortedContainer.h"
 
-#include "alg/ForceComputation.h"
-#include "alg/SoAForceComputation.h"
 #include "alg/ListsForceComputation.h"
-#include "alg/NeighborSearch.h"
-#include "alg/NeighborLists.h"
-#include "container/ordering/MortonNeighborSearch.h"
-#include "alg/EncodedListsForceComputation.h"
+// #include "alg/NeighborSearch.h"
+// #include "alg/NeighborLists.h"
+// #include "container/ordering/MortonNeighborSearch.h"
+// #include "alg/EncodedListsForceComputation.h"
 
 #include "integrator/Integrator.h"
 
@@ -28,9 +25,10 @@
 #endif
 
 
-#include "container/ordering/MortonNeighborLists.h"
-#include "container/ordering/MortonNeighborSearch.h"
-#include "container/ordering/MortonForceComputation.h"
+
+#include "alg/TypesNeighborSearch.h"
+#include "compute/GenericForceComputation.hpp"
+#include "alg/GenericNeighborLists.hpp"
 
 std::string StepHeader(int step, Container& particles, Domain& domain);
 
@@ -65,16 +63,10 @@ int main(int argc, char** argv){
         domain.l_corner=Vec3d{0,0,0};
     }
 
-
-    // NeighborSearch neighbor_search{domain,H};
-    MortonNeighborSearch neighbor_search{domain,H};
-
-    // NeighborList list{H};
-    MortonNeighborList list{H};
-    // ParticleContainer container;
+    // RowMajorNeighborSearch gns{domain,H};
+    MortonNeighborSearch gns{domain,H};
+    GenericNeighborLists<MortonNeighborSearch> list{H};
     SoAContainer container;
-
-    ViscosityKernel kernel{H};
     
     Integrator integrator{dt,&domain};
     CheckPointWriter checkpoint{"positions_step_",parser.GetIntParameter("checkpoint_write_frequency")};
@@ -98,8 +90,9 @@ int main(int argc, char** argv){
 
     std::cout<<"[Configuration] Configuration complete."<<std::endl;
 
-    neighbor_search.FindNeighbors(container);
-    // list.AssembleNeighborList(container,neighbor_search);
+    // neighbor_search.FindNeighbors(container);
+    gns.FindNeighbors(container);
+    list.AssembleNeighborList(container,gns);
 
 
     std::cout<<"[Simulation] Output step 0 positions\n";
@@ -110,8 +103,12 @@ int main(int argc, char** argv){
     // SortedForceComputation computation{H,neighbor_search};
     // ListsForceComputation computation{H,neighbor_search,list};
     // EncodedListsForceComputation computation{H,neighbor_search,list};
+    // MortonSortedForceComputation computation{H,neighbor_search};
 
-    MortonSortedForceComputation computation{H,neighbor_search};
+
+    // GenericForceComputation<MortonNeighborSearch> computation{H,gns};
+    ListsForceComputation computation{H,list.GetNeighborList()};
+
     timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
@@ -120,8 +117,9 @@ int main(int argc, char** argv){
         integrator.UpdatePositions(container);
 
         timers.Start("container_build");
-        neighbor_search.FindNeighbors(container);
-        // list.AssembleNeighborList(container,neighbor_search);
+        // neighbor_search.FindNeighbors(container);
+        gns.FindNeighbors(container);
+        list.AssembleNeighborList(container,gns);
         timers.Stop("container_build");
 
         checkpoint.WriteCheckPoint(i,container);
