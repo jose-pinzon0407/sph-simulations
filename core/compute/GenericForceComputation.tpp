@@ -3,13 +3,20 @@
 // #include "alg/TypesNeighborSearch.h"
 
 template<class NeighborSearchType>
-GenericForceComputation<NeighborSearchType>::GenericForceComputation(Real radius, NeighborSearchType& ns):h1{radius},h2{radius*radius},h6{h2*h2*h2},neighbor_search{ns}{
+GenericForceComputation<NeighborSearchType>::GenericForceComputation(Real radius, GenericNeighborSearch<NeighborSearchType>& ns):h1{radius},h2{radius*radius},h6{h2*h2*h2},neighbor_search{ns}{
     density_constant = 315.0/(64.0*M_PI*std::pow(h1,9));
     pressure_constant = 15.0/(M_PI*std::pow(h1,6.0));
     std::cout<<"[GenericForceComputation] density constant="<<density_constant<<std::endl;
     std::cout<<"[GenericForceComputation] pressure constant="<<pressure_constant<<std::endl;
     std::cout<<"Original: "<<&ns<<std::endl;
     std::cout<<"assigned: "<<&neighbor_search<<std::endl;
+}
+
+template<class NeighborSearchType>
+void GenericForceComputation<NeighborSearchType>::Compute(SoAContainer& particles){
+    ApproximateDensity(particles);
+    CalculatePressure(particles);
+    ComputeForces(particles);
 }
 
 template<class NeighborSearchType>
@@ -32,6 +39,8 @@ void GenericForceComputation<NeighborSearchType>::ApproximateDensity(SoAContaine
     // std::vector<int> sorted_neighbor_counts;
     // sorted_neighbor_counts.resize(N);
     // std::fill(sorted_neighbor_counts.begin(),sorted_neighbor_counts.end(),0);
+
+    #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
         Real accum_rho_i=0.0;
 
@@ -46,15 +55,15 @@ void GenericForceComputation<NeighborSearchType>::ApproximateDensity(SoAContaine
 
 
 
-        if(neighbor_search.Flatten(multi_index_i) != cell_i){
-            std::cout<<"Error in flattening\n";
-            std::exit(EXIT_FAILURE);
-        }
+        // if(neighbor_search.Flatten(multi_index_i) != cell_i){
+        //     std::cout<<"Error in flattening\n";
+        //     std::exit(EXIT_FAILURE);
+        // }
 
-        if(neighbor_search.Flatten(neighbor_search.Unflatten(cell_i))!=particles.GetParticleCellIndex(i)){
-            std::cout<<"flatten(unflatten) issue\n";
-            std::exit(EXIT_FAILURE);
-        }
+        // if(neighbor_search.Flatten(neighbor_search.Unflatten(cell_i))!=particles.GetParticleCellIndex(i)){
+        //     std::cout<<"flatten(unflatten) issue\n";
+        //     std::exit(EXIT_FAILURE);
+        // }
 
         for(int c1=-1;c1<=1;++c1){
             for(int c2=-1;c2<=1;++c2){
@@ -74,15 +83,15 @@ void GenericForceComputation<NeighborSearchType>::ApproximateDensity(SoAContaine
                 int cell_j = neighbor_search.Flatten(multi_index_j);
 
 
-                if(neighbor_search.Unflatten(cell_j) != multi_index_j){
-                    std::cout<<"Error in flattening\n";
-                    std::exit(EXIT_FAILURE);
-                }
+                // if(neighbor_search.Unflatten(cell_j) != multi_index_j){
+                //     std::cout<<"Error in flattening\n";
+                //     std::exit(EXIT_FAILURE);
+                // }
 
-                if(cell_j >= neighbor_search.GetCellsInDirectionX()*neighbor_search.GetCellsInDirectionY()){
-                    std::cout<<"Invalid global index\n";
-                    std::exit(EXIT_FAILURE);
-                }
+                // if(cell_j >= neighbor_search.GetCellsInDirectionX()*neighbor_search.GetCellsInDirectionY()){
+                //     std::cout<<"Invalid global index\n";
+                //     std::exit(EXIT_FAILURE);
+                // }
 
                 int cell_start_j = neighbor_search.GetCellStart(cell_j);
                 int cell_end_j = neighbor_search.GetCellEnd(cell_j);
@@ -93,10 +102,10 @@ void GenericForceComputation<NeighborSearchType>::ApproximateDensity(SoAContaine
 
                 for(int pj=cell_start_j;pj<cell_end_j;++pj){
 
-                     if(neighbor_search.Flatten(neighbor_search.Unflatten(cell_j))!=particles.GetParticleCellIndex(pj)){
-                    std::cout<<"flatten(unflatten) issue\n";
-                    std::exit(EXIT_FAILURE);
-                    }
+                    // if(neighbor_search.Flatten(neighbor_search.Unflatten(cell_j))!=particles.GetParticleCellIndex(pj)){
+                    // std::cout<<"flatten(unflatten) issue\n";
+                    // std::exit(EXIT_FAILURE);
+                    // }
 
                     Real dx = particles.GetParticles().rx[i]-particles.GetParticles().rx[pj];
                     Real dy = particles.GetParticles().ry[i]-particles.GetParticles().ry[pj];
@@ -127,8 +136,8 @@ void GenericForceComputation<NeighborSearchType>::ComputeForces(SoAContainer& pa
     Real mu=MU;
 
 
-    ApproximateDensity(particles);
-    CalculatePressure(particles);
+    // ApproximateDensity(particles);
+    // CalculatePressure(particles);
 
     Real fg_y=-10.0;
     size_t N = particles.Size();

@@ -5,6 +5,7 @@ void ListsForceComputation::ApproximateDensity(SoAContainer& particles){
     Real mu=MU;
     size_t N = particles.Size();
 
+    #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
         std::vector<int>& i_neighbors = neighbor_list[i];
         // std::vector<int>& i_neighbors = neighbor_list.GetNeighborsOfParticle(i);
@@ -47,10 +48,16 @@ void ListsForceComputation::CalculatePressure(SoAContainer& particles){
     }
 }
 
-void ListsForceComputation::ComputeForces(SoAContainer& particles){
-    
+void ListsForceComputation::Compute(SoAContainer& particles){
     ApproximateDensity(particles);
     CalculatePressure(particles);
+    ComputeForces(particles);
+}
+
+void ListsForceComputation::ComputeForces(SoAContainer& particles){
+    
+    // ApproximateDensity(particles);
+    // CalculatePressure(particles);
 
     Particles& soa_particles = particles.GetParticles();
     Real mu=MU;

@@ -75,7 +75,7 @@ set(SPH_SOURCES
         ${SPH_CORE}/alg/ForceComputation.cpp
         ${SPH_CORE}/alg/SoAForceComputation.cpp
         ${SPH_CORE}/alg/SortedForceComputation.cpp
-        ${SPH_CORE}/alg/ListsForceComputation.cpp
+        ${SPH_CORE}/compute/ListsForceComputation.cpp
         ${SPH_CORE}/alg/NeighborSearch.cpp
         ${SPH_CORE}/container/Container.cpp
         ${SPH_CORE}/container/SoAContainer.cpp

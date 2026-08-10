@@ -51,8 +51,10 @@ struct MortonOrder{
     }
 
     void ResizeCellRanges(){
-        cell_start.resize(GetTotalCells(),-1);
-        cell_end.resize(GetTotalCells(),-1);
+        std::cout<<"Resize to= "<<GetTotalCells()<<std::endl;
+        int num_cells=GetTotalCells();
+        cell_start.resize(num_cells,-1);
+        cell_end.resize(num_cells,-1);
     }
 
     void RefillCellRanges(){
@@ -89,13 +91,14 @@ struct MortonOrder{
 
     void AddCellPadding(){
         std::cout<<"[MortonOrder] Padding of the total cells is required\n";
-        std::cout<<"[MortonOrder] Given configuration is: ("<<nx<<","<<ny<<","<<nz<<") a total of: "<<GetTotalCells()<<" cells\n"; 
         int old_num_cells = GetTotalCells();
+        std::cout<<"[MortonOrder] Given configuration is: ("<<nx<<","<<ny<<","<<nz<<") a total of: "<<old_num_cells<<" cells\n"; 
+        
         nx = NexPowerOfTwo(nx);
         ny = NexPowerOfTwo(ny);
         nz = NexPowerOfTwo(nz);
         std::cout<<"[MortonOrder] After padding the configuration is: ("<<nx<<","<<ny<<","<<nz<<") a total of: "<<GetTotalCells()<<" cells\n";
-        std::cout<<"[MortonOrder] Added empty cells for padding: "<<old_num_cells-GetTotalCells()<<"\n";
+        std::cout<<"[MortonOrder] Added empty cells for padding: "<<GetTotalCells()-old_num_cells<<"\n";
 
     }
 

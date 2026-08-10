@@ -12,7 +12,7 @@ class GenericNeighborLists{
     public:
     GenericNeighborLists(double r);
 
-    void AssembleNeighborList(SoAContainer& container, NeighborSearchType& neighbor_search);
+    void AssembleNeighborList(SoAContainer& container, GenericNeighborSearch<NeighborSearchType>& neighbor_search);
     neighbors& GetNeighborList();
     std::vector<int>& GetNeighborsOfParticle(int i){
         return neighbor_lists[i];

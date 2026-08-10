@@ -1,0 +1,11 @@
+steps = 50
+dt = 0.005
+domain_x=65
+domain_y=128
+lattice_dx = 0.125
+lattice_dy = 0.125
+lattice_xvol = 0.5
+lattice_yvol = 0.5
+checkpoint_write_frequency=100
+order=rowmajor
+compute_type=lists

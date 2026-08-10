@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SoAForceComputation.h"
+#include "container/SoAContainer.h"
 
 class ListsForceComputation{
 
@@ -12,7 +12,7 @@ class ListsForceComputation{
         std::cout<<"[ListsForceComputation] density constant="<<density_constant<<std::endl;
         std::cout<<"[ListsForceComputation] pressure constant="<<pressure_constant<<std::endl;
     }
-
+    void Compute(SoAContainer& particles);
     void ComputeForces(SoAContainer& particles);
     void ApproximateDensity(SoAContainer& particles);
     void CalculatePressure(SoAContainer& particles);
@@ -25,7 +25,6 @@ class ListsForceComputation{
     Real density_constant;
     Real pressure_constant;
     ScalarField pressure_field;
-    // NeighborList& neighbor_list;
     std::vector<std::vector<int>>& neighbor_list;
 
     Real DensityW(Real r2){

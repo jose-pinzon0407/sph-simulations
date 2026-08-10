@@ -7,7 +7,7 @@ GenericNeighborLists<NeighborSearchType>::GenericNeighborLists(double r):h2{r*r}
 }
 
 template<class NeighborSearchType>
-void GenericNeighborLists<NeighborSearchType>::AssembleNeighborList(SoAContainer& container, NeighborSearchType& neighbor_search){
+void GenericNeighborLists<NeighborSearchType>::AssembleNeighborList(SoAContainer& container, GenericNeighborSearch<NeighborSearchType>& neighbor_search){
 
     ResetNeighborList();
 
@@ -15,8 +15,8 @@ void GenericNeighborLists<NeighborSearchType>::AssembleNeighborList(SoAContainer
     Resize(N);
 
     //prepare codifier
-    encoder.ResetCodifier();
-    encoder.Init(N);
+    // encoder.ResetCodifier();
+    // encoder.Init(N);
 
     #pragma omp parallel for schedule(runtime)
     for(size_t i=0;i<N;++i){
@@ -67,10 +67,10 @@ void GenericNeighborLists<NeighborSearchType>::AssembleNeighborList(SoAContainer
             }
         }
 
-        std::sort(neighbor_lists[i].begin(),neighbor_lists[i].end());
+        // std::sort(neighbor_lists[i].begin(),neighbor_lists[i].end());
 
         //Encode into differences
-        encoder.Encode(i,neighbor_lists[i]);
+        // encoder.Encode(i,neighbor_lists[i]);
 
     }
 }
@@ -83,7 +83,7 @@ neighbors& GenericNeighborLists<NeighborSearchType>::GetNeighborList(){
 template<class NeighborSearchType>
 void GenericNeighborLists<NeighborSearchType>::ResetNeighborList(){
     size_t N = neighbor_lists.size();
-
+    #pragma omp parallel for schedule(runtime)
     for(int i=0;i<N;++i){
         neighbor_lists[i].clear();
     }
