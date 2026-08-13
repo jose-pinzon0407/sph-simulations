@@ -26,6 +26,8 @@
 #include "compute/GenericForceComputation.hpp"
 #include "alg/GenericNeighborLists.hpp"
 
+#include "algorithmic/MultipassNeighborLists.h"
+
 namespace simulation{
 
 InputParser parser;
@@ -36,7 +38,6 @@ int N, steps;
 Real dt;
 AvgNeighborsPerParticle measure;
 CheckPointWriter* checkpoint=nullptr;
-
 
 void CreateTimers(){
 
@@ -118,6 +119,10 @@ void End(){
 template<class NeighborSearchType>
 void PreLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_search, GenericNeighborLists<NeighborSearchType>& neighbor_list, GenericForceComputation<NeighborSearchType>& computation ){
 
+
+    
+
+
     timers.Start("neighbor_search");
     neighbor_search.FindNeighbors(container);
     timers.Stop("neighbor_search");
@@ -189,7 +194,6 @@ void MainLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType>& nei
         integrator.UpdatePositions(container);
 
 
-
         timers.Start("neighbor_search");
         neighbor_search.FindNeighbors(container);
         timers.Stop("neighbor_search");
@@ -225,7 +229,38 @@ void MainLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType>& nei
 }
 
 template<class NeighborSearchType>
-void MainLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_search, GenericNeighborLists<NeighborSearchType>& neighbor_list, GenericForceComputation<NeighborSearchType>& computation){
+void PreLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType> & neighbor_search, MultipassNeighborLists<NeighborSearchType> & neighbor_list, MPListsForceComputation& computation ){
+
+    timers.Start("neighbor_search");
+    neighbor_search.FindNeighbors(container);
+    timers.Stop("neighbor_search");
+
+    timers.Start("neighbor_list");
+    neighbor_list.AssembleNeighborList(container,neighbor_search);
+    timers.Stop("neighbor_list");
+
+
+    std::cout<<"[Simulation] Output step 0 positions\n";
+    checkpoint->WriteCheckPoint(0,container);
+
+    timers.Start("approximate_density");
+    computation.ApproximateDensity(container);
+    timers.Stop("approximate_density");
+
+    timers.Start("calculate_pressure");
+    computation.CalculatePressure(container);
+    timers.Stop("calculate_pressure");
+
+    timers.Start("force_computation");
+    computation.ComputeForces(container);
+    timers.Stop("force_computation");
+
+    std::cout<<StepHeader(0,container,domain);
+
+}
+
+template<class NeighborSearchType>
+void MainLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType>& neighbor_search, MultipassNeighborLists<NeighborSearchType>& neighbor_list, MPListsForceComputation& computation){
     Integrator integrator{dt,&domain};
 
     timers.Start("main_loop");
@@ -235,6 +270,52 @@ void MainLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_sea
         integrator.UpdateVelocities(container);
         integrator.UpdatePositions(container);
 
+
+
+        timers.Start("neighbor_search");
+        neighbor_search.FindNeighbors(container);
+        timers.Stop("neighbor_search");
+
+        timers.Start("neighbor_list");
+        neighbor_list.AssembleNeighborList(container,neighbor_search);
+        timers.Stop("neighbor_list");
+
+
+        checkpoint->WriteCheckPoint(i,container);
+
+        timers.Start("approximate_density");
+        computation.ApproximateDensity(container);
+        timers.Stop("approximate_density");
+
+        timers.Start("calculate_pressure");
+        computation.CalculatePressure(container);
+        timers.Stop("calculate_pressure");
+
+        timers.Start("force_computation");
+        computation.ComputeForces(container);
+        timers.Stop("force_computation");
+
+        measure.Measure(neighbor_list.GetNeighborList(),neighbor_list.GetOffsetPerParticle());
+        measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
+
+        std::cout<<StepHeader(i,container,domain);
+
+    }
+
+    timers.Stop("main_loop");
+
+}
+
+template<class NeighborSearchType>
+void MainLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_search, GenericNeighborLists<NeighborSearchType>& neighbor_list, GenericForceComputation<NeighborSearchType>& computation){
+    Integrator integrator{dt,&domain};
+
+    timers.Start("main_loop");
+    for(int i=1;i<steps;++i){
+        
+
+        integrator.UpdateVelocities(container);
+        integrator.UpdatePositions(container);
 
 
         timers.Start("neighbor_search");
@@ -303,8 +384,38 @@ void RunSimulationWithLists(){
 
 }
 
+template<class NeighborSearchType>
+void RunSimulationWithMPLists(){
+    GenericNeighborSearch<NeighborSearchType> gns{domain,H};
+    MultipassNeighborLists<NeighborSearchType> list{H};
+    MPListsForceComputation computation{H,list.GetNeighborList(),list.GetOffsetPerParticle()};
+
+    
+    PreLoopComputationWithMPLists<NeighborSearchType>(gns,list,computation);
+
+    MainLoopComputationWithMPLists<NeighborSearchType>(gns,list,computation);
+
+    End();
+}
+
 
 void RunSimulation(){
+
+    if(parser.GetParameter("compute_type")=="mp-lists"){
+        if(parser.GetParameter("order")=="morton"){
+            std::cout<<"[Configuration] Using "<<parser.GetParameter("order")<<" ordering\n";
+            RunSimulationWithMPLists<MortonOrder>();
+            return;
+        }
+
+
+        if(parser.GetParameter("order")=="rowmajor"){
+            std::cout<<"[Configuration] Using "<<parser.GetParameter("order")<<" ordering\n";
+            RunSimulationWithMPLists<RowMajorOrder>();
+            return;
+            
+        }
+    }
 
     if(parser.GetParameter("compute_type")=="sorted"){
         std::cout<<"[Configuration] Using "<<parser.GetParameter("compute_type")<<" computation type\n";
@@ -342,18 +453,7 @@ void RunSimulation(){
             
         }
     }
-    
 
-    // NeighborSearchType gns{domain,H};
-    // GenericNeighborLists<NeighborSearchType> list{H};
-    // GenericForceComputation<NeighborSearchType> computation{H,gns};
-
-    
-    // PreLoopComputation<NeighborSearchType>(gns,list,computation);
-
-    // MainLoopComputation<NeighborSearchType>(gns,list,computation);
-
-    // End();
 
 }
 

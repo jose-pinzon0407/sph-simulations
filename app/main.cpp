@@ -27,7 +27,7 @@ using namespace simulation;
 
 
 int main(int argc, char** argv){
-
+    std::cout<<"[Smoothed Particle Hydrodynamics]\n";
     // InputParser parser;
     parser.ReadInputFile("example.txt");
 

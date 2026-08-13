@@ -65,6 +65,33 @@ struct AvgNeighborsPerParticle{
 
     }
 
+
+    void Measure(std::vector<int>& list,std::vector<int>& opp){
+        int num_particles = opp.size()-1;
+        int sum_neighbors=0;
+        min=num_particles;
+
+        for(int i=0;i<num_particles;++i){
+            int offset_pp = opp[i];
+            int i_neighbors= opp[i+1]-offset_pp;
+            sum_neighbors += i_neighbors;
+            max = std::max(max,i_neighbors);
+            min = std::min(min,i_neighbors);
+        }
+
+        average = sum_neighbors/num_particles;
+
+        for(int i=0;i<num_particles;++i){
+            int offset_pp = opp[i];
+            int i_neighbors= opp[i+1]-offset_pp;
+            deviation += (i_neighbors - average)*(i_neighbors - average);
+        }
+
+        deviation = std::sqrt(deviation/num_particles);
+        measured_steps++;
+
+    }
+
     void MeasureCells(std::vector<int>& cell_start,std::vector<int>& cell_end){
         num_cells = cell_start.size();
         num_empty_cells=0;

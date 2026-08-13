@@ -15,7 +15,7 @@ set(SPH_CORE "${CMAKE_CURRENT_SOURCE_DIR}/core/")
 message( STATUS "Project core is: ${SPH_CORE}")
 option(DOUBLE_PRECISION "Either single or double" ON)
 option(VECTORIZATION "Use auto vectorization" ON)
-option(GPU "Enable CUDA GPU acceleration" ON)
+option(GPU "Enable CUDA GPU acceleration" OFF)
 option(OPENMP "Enable OpenMP" OFF)
 
 set(CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/")
@@ -76,6 +76,7 @@ set(SPH_SOURCES
         ${SPH_CORE}/alg/SoAForceComputation.cpp
         ${SPH_CORE}/alg/SortedForceComputation.cpp
         ${SPH_CORE}/compute/ListsForceComputation.cpp
+        ${SPH_CORE}/compute/MPListsForceComputation.cpp
         ${SPH_CORE}/alg/NeighborSearch.cpp
         ${SPH_CORE}/container/Container.cpp
         ${SPH_CORE}/container/SoAContainer.cpp
@@ -114,6 +115,7 @@ endif()
 
 target_include_directories(sim-sph.out PRIVATE ${SPH_CORE})
 target_include_directories(sim-sph.out PRIVATE ${CONFIG_DIR})
+target_include_directories(sim-sph.out PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app})
 
 if(OpenMP_CXX_FOUND)
 target_link_libraries(sim-sph.out PRIVATE OpenMP::OpenMP_CXX)

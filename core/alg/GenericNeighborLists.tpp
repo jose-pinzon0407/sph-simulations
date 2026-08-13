@@ -14,6 +14,11 @@ void GenericNeighborLists<NeighborSearchType>::AssembleNeighborList(SoAContainer
     size_t N = container.Size();
     Resize(N);
 
+    #pragma omp parallel for 
+    for(int i=0;i<N;++i){
+        neighbor_lists[i].reserve(256);
+    }
+
     //prepare codifier
     // encoder.ResetCodifier();
     // encoder.Init(N);
