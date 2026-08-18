@@ -57,6 +57,7 @@ void cuInvertBuffer(int N,
                     int blocks, int threads,
                     Real * rho, Real* inv_rho){
     cuInvertDensity<<<blocks,threads>>>(N,rho,inv_rho);
+    cudaDeviceSynchronize();
 }
 
 void cuKernelComputeForcesSorted(int blocks, int threads, int N, Real* rx, Real* ry, Real* fx, Real* fy, Real* vx, Real* vy, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, Real* rho, Real* pressure, cuConstants kernel_constants){
@@ -191,7 +192,8 @@ void cuComputeForces(int N,
     Real rix = rx[idx];
     Real riy = ry[idx];
 
-    Real p_rho_i2 = pressure[idx]/(rho[idx]*rho[idx]);
+    // Real p_rho_i2 = pressure[idx]/(rho[idx]*rho[idx]);
+    Real p_rho_i2 = pressure[idx]*(rho[idx]*rho[idx]);
     
     fx[idx]=0.0;
     fy[idx]=-10.0;
@@ -242,7 +244,8 @@ void cuComputeForces(int N,
 
 
                 Real pj= pressure[j];  
-                Real inv_rho_j = 1.0/rho[j];
+                // Real inv_rho_j = 1.0/rho[j];
+                Real inv_rho_j = rho[j];
 
 
                 // if(r2<=TOL*TOL) continue;
