@@ -13,14 +13,20 @@
 // #include "utils/TimerManager.h"
 // #include "utils/InputParser.h"
 
-#ifdef GPU
-#include "acceleration/CUDAKernels.cuh"
-#endif
 
 // #include "algorithmic/MeasureAverageNeighborsPerParticle.h"
-#include "simulation_configuration.h"
-using namespace simulation;
+// #include "simulation_configuration.h"
 
+#ifdef GPU
+#include "cu_simulation_configuration.h"
+#else
+#include "simulation_configuration.h"
+#endif
+
+using namespace simulation;
+#ifdef GPU
+using namespace gpu_simulation;
+#endif
 
 
 // std::string StepHeader(int step, Container& particles, Domain& domain);
@@ -45,11 +51,20 @@ int main(int argc, char** argv){
     ConfigureLattice();
     ConfigureParameters();
 
+    #ifdef GPU
+    cudaConfigure(domain,H,parser.GetIntParameter("gpu_threads_per_block"),container.Size());
+    cudaSimulationSetup(container);
+    #endif
 
     OutputOtherConfigurations();
 
+    #ifdef GPU
+    RunSimulationGPU();
+    #else
     RunSimulation();
+    #endif
 
+    End();
 
 
     return 0;

@@ -10,6 +10,8 @@ project(SPH
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
 message( STATUS "Project source is: ${CMAKE_CURRENT_SOURCE_DIR}")
 set(SPH_CORE "${CMAKE_CURRENT_SOURCE_DIR}/core/")
 message( STATUS "Project core is: ${SPH_CORE}")
@@ -39,13 +41,12 @@ message(STATUS "OpenMP Enabled")
 find_package(OpenMP)
 endif()
 
+
 set(default_build_type "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Build type" FORCE)
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
-
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 add_compile_options(-O3
                 #     -flto
@@ -96,8 +97,12 @@ set(SPH_SOURCES
 
 if(GPU)
         list(APPEND SPH_SOURCES
-          ${SPH_CORE}/acceleration/CUDAKernels.cu
-          ${SPH_CORE}/acceleration/CUDAUtils.cu)
+          ${SPH_CORE}/acceleration/cuContainer.cu
+          ${SPH_CORE}/acceleration/cuFindNeighbors.cu
+          ${SPH_CORE}/acceleration/cuComputation.cu
+          ${SPH_CORE}/acceleration/cuNeighborLists.cu
+          ${SPH_CORE}/acceleration/cuComputationWithLists.cu
+          )
 endif()
 
 
@@ -105,7 +110,7 @@ add_executable(sim-sph.out
               ${SPH_SOURCES}
               )
 if(GPU)
-        target_sources(sim-sph.out PRIVATE app/cu_main.cpp)
+        target_sources(sim-sph.out PRIVATE app/main.cpp)
 
 else()
         target_sources(sim-sph.out PRIVATE app/main.cpp)
@@ -122,9 +127,16 @@ target_link_libraries(sim-sph.out PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 if(GPU)
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo --prec-sqrt=false --prec-div=false --use_fast_math")
 find_package(CUDAToolkit REQUIRED)
 target_link_libraries(sim-sph.out PRIVATE CUDA::cudart)
 endif()
+
+
+message(STATUS "DOUBLE PRECISION:${DOUBLE_PRECISION}")
+message(STATUS "VECTORIZATION:${VECTORIZATION}")
+message(STATUS "OPENMP:${OPENMP}")
+message(STATUS "GPU:${GPU}")
 
 cmake_print_variables(CMAKE_CXX_COMPILER)
 cmake_print_variables(CMAKE_BUILD_TYPE)
