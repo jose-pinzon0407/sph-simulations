@@ -1,5 +1,4 @@
 #include "cudaLaunchers.cuh"
-
 /*******************************************************************
  * 
  * KERNEL DECLARATION
@@ -158,7 +157,7 @@ void cuComputeForcesWithLists(int N,
     Real riy = ry[idx];
 
     Real rho_i=rho[idx];
-    Real p_rho_i2 = pressure[idx]/(rho_i*rho_i);
+    Real p_rho_i2 = pressure[idx]*(rho_i*rho_i);
     
     fx[idx]=0.0;
     fy[idx]=-10.0;
@@ -187,12 +186,20 @@ void cuComputeForcesWithLists(int N,
 
         if(r2>TOL*TOL){
 
-            Real pressure_multiplier = -0.5*(p_rho_i2+pj/(rho_j*rho_j));
 
-            Real h1_r12= (kernel_constants.h1-r1)*(kernel_constants.h1-r1);
+            // Real h1_r12= (kernel_constants.h1-r1)*(kernel_constants.h1-r1);
+            // Real pressure_multiplier = -0.5*(p_rho_i2+pj*(rho_j*rho_j));
 
-            fp_x += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dx*pressure_multiplier;
-            fp_y += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dy*pressure_multiplier;
+            // pressure_multiplier *= -3.0*(kernel_constants.h1-r1)*(kernel_constants.h1-r1)*kernel_constants.pressure_constant*inv_r1;
+
+            Real pressure_multiplier = 1.5*(kernel_constants.h1-r1)*(kernel_constants.h1-r1)*kernel_constants.pressure_constant*inv_r1*(p_rho_i2+pj*(rho_j*rho_j));
+            
+
+            // fp_x += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dx*pressure_multiplier;
+            // fp_y += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dy*pressure_multiplier;
+
+            fp_x = fma(pressure_multiplier,dx,fp_x);
+            fp_y = fma(pressure_multiplier,dy,fp_y);
 
                 
 
@@ -202,8 +209,11 @@ void cuComputeForcesWithLists(int N,
             Real viscosity_multiplier = kernel_constants.viscosity_constant/rho_j*(kernel_constants.h1-r1);
 
 
-            fv_x += viscosity_multiplier*dvx;
-            fv_y += viscosity_multiplier*dvy;
+            // fv_x += viscosity_multiplier*dvx;
+            // fv_y += viscosity_multiplier*dvy;
+
+            fv_x = fma(viscosity_multiplier,dvx,fv_x);
+            fv_x = fma(viscosity_multiplier,dvy,fv_y);
 
 
         }

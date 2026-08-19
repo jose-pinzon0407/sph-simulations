@@ -1,5 +1,4 @@
 #pragma once
-
 #include "container/SoAContainer.h"
 #include "cuParticles.cuh"
 #include "Domain.h"
@@ -8,9 +7,7 @@
 /**
  * Only code that will be called from HOST
  */
-
 void cuDeviceProperties();
-void cudaSetConstants(cuConstants& cucst);
 
 /**
  * \brief Copies host to device
@@ -101,8 +98,7 @@ void cuKernelNeighborLists(int blocks, int threads,
                            int num_cells, int nx, int ny, 
                            int* cell_start, int* cell_end,
                            int* neighbors_per_particle, int* offset_per_particle,
-                           int*& neighbor_list_indices,
-                           cuConstants kernel_constants
+                           int*& neighbor_list_indices
                           );
 
 /**

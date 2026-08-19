@@ -130,6 +130,7 @@ if(GPU)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo --prec-sqrt=false --prec-div=false --use_fast_math")
 find_package(CUDAToolkit REQUIRED)
 target_link_libraries(sim-sph.out PRIVATE CUDA::cudart)
+# set_target_properties(sim-sph.out PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 endif()
 
 

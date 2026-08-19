@@ -1,22 +1,5 @@
 #include "cudaLaunchers.cuh"
 
-/**
- * CONSTANTS
- */
-__constant__ Real density_constant;
-__constant__ Real pressure_constant;
-__constant__ Real viscosity_constant;
-__constant__ Real h1;
-__constant__ Real h2;
-
-
-void cudaSetConstants(cuConstants& cucst){
-        cudaMemcpyToSymbol(pressure_constant,&cucst.pressure_constant,sizeof(Real));
-        cudaMemcpyToSymbol(viscosity_constant,&cucst.viscosity_constant,sizeof(Real));
-        cudaMemcpyToSymbol(density_constant,&cucst.density_constant,sizeof(Real));
-        cudaMemcpyToSymbol(h1,&cucst.h1,sizeof(Real));
-        cudaMemcpyToSymbol(h2,&cucst.h2,sizeof(Real));
-}
 
 
 /*******************************************************************
@@ -42,7 +25,9 @@ void cuComputeForces(int N,
                     int* particle_cell_id, 
                     int num_cells, int nx, int ny, 
                     int* start, int* end, 
-                    Real* rho, Real* pressure);
+                    Real* rho, Real* pressure,
+                    cuConstants constants
+                    );
 
 __device__
 Real DensityW(Real r2);
@@ -68,7 +53,8 @@ void cuKernelComputeForcesSorted(int blocks, int threads, int N, Real* rx, Real*
         particle_cell_id,
         num_cells,nx,ny,
         start,end,
-        rho,pressure);
+        rho,pressure,
+        kernel_constants);
     cudaDeviceSynchronize();
 }
 
@@ -179,7 +165,8 @@ void cuComputeForces(int N,
     int* particle_cell_id, 
     int num_cells, int nx, int ny, 
     int* start, int* end, 
-    Real* rho, Real* pressure
+    Real* rho, Real* pressure,
+    cuConstants constants
     ){
 
     int idx=threadIdx.x+blockIdx.x*blockDim.x;
@@ -240,7 +227,7 @@ void cuComputeForces(int N,
 
                 Real r2 = dx*dx + dy*dy;
                               
-                if(r2>h2 || idx==j)continue;
+                if(r2>constants.h2 || idx==j)continue;
 
 
                 Real pj= pressure[j];  
@@ -251,8 +238,10 @@ void cuComputeForces(int N,
                 // if(r2<=TOL*TOL) continue;
 
                 {
-                
-                Real inv_r1 = rsqrt(r2);
+                float r2_f =(float)r2;
+                float inv_r1_f1 = rsqrtf(r2_f);
+                float inv_r1 = inv_r1_f1;
+                // Real inv_r1 = rsqrt(r2);
                 Real r1 = r2*inv_r1;
 
                 // Real pressure_multiplier = -0.5*(p_rho_i2+pj/(rho_j*rho_j));
@@ -262,7 +251,7 @@ void cuComputeForces(int N,
 
                 // Real h1_r12= (kernel_constants.h1-r1)*(kernel_constants.h1-r1);
                 
-                pressure_multiplier *= -3.0*(h1-r1)*(h1-r1)*pressure_constant*inv_r1;
+                pressure_multiplier *= -3.0*(constants.h1-r1)*(constants.h1-r1)*constants.pressure_constant*inv_r1;
 
                 // fx[idx] += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dx*pressure_multiplier;
                 // fy[idx] += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dy*pressure_multiplier;
@@ -286,7 +275,7 @@ void cuComputeForces(int N,
                 Real dvy = vy[j]-viy;
 
                 // Real viscosity_multiplier = kernel_constants.viscosity_constant/rho_j*(kernel_constants.h1-r1);
-                Real viscosity_multiplier = viscosity_constant*inv_rho_j*(h1-r1);
+                Real viscosity_multiplier = constants.viscosity_constant*inv_rho_j*(constants.h1-r1);
 
 
                 // fx[idx] += viscosity_multiplier*dvx;

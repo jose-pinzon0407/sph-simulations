@@ -6,7 +6,7 @@ using Real=double;
 using Real=float;
 #endif
 
-#define H  1.0
+#define H 1.0
 #define D 2
 #define TOL 1.0e-12
 #define GAS_CONSTANT 30.0

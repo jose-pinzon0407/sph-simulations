@@ -16,7 +16,7 @@ __global__
 void cuSetLastOffsetElement(int N, int* offset_per_particle, const int* neighbors_per_particle);
 
 __global__
-void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* rho, cuConstants kernel_constants);
+void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* rho);
 
 void cuCalculateCellOffsets(int N, 
                           int* offset_per_particle,
@@ -25,7 +25,7 @@ void cuCalculateCellOffsets(int N,
                             );
 
 __global__
-void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* offset_per_particle, int* neighbor_list, cuConstants kernel_constants);
+void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* offset_per_particle, int* neighbor_list);
 
 
 /*******************************************************************
@@ -40,21 +40,18 @@ void cuKernelNeighborLists(int blocks, int threads,
                            int* particle_cell_id, 
                            int num_cells, int nx, int ny, 
                            int* cell_start, int* cell_end,
-                           int* neighbors_per_particle, int* offset_per_particle, int*& neighbor_list,
-                           cuConstants kernel_constants
-                          ){
+                           int* neighbors_per_particle, int* offset_per_particle, int*& neighbor_list                          ){
 
     cuCountNeighborsPerParticle<<<blocks,threads>>>(N,rx,ry,
                                                 particle_cell_id,
                                                 num_cells,nx,ny,
                                                 cell_start,cell_end,
-                                                neighbors_per_particle,
-                                                kernel_constants);
+                                                neighbors_per_particle);
     cudaDeviceSynchronize();    
 
     cuCalculateCellOffsets(N,offset_per_particle,neighbors_per_particle, neighbor_list);
 
-    cuAssignIndices<<<blocks,threads>>>(N,rx,ry,particle_cell_id,num_cells,nx,ny,cell_start,cell_end,offset_per_particle,neighbor_list,kernel_constants);
+    cuAssignIndices<<<blocks,threads>>>(N,rx,ry,particle_cell_id,num_cells,nx,ny,cell_start,cell_end,offset_per_particle,neighbor_list);
     cudaDeviceSynchronize();
 } 
 
@@ -67,7 +64,8 @@ void cuKernelNeighborLists(int blocks, int threads,
 
 
  __global__
-void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* neighbors_per_particle, cuConstants kernel_constants){
+void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* neighbors_per_particle
+){
 
     int idx = threadIdx.x+blockIdx.x*blockDim.x;
     int offset_i=0;
@@ -147,15 +145,15 @@ void cuCalculateCellOffsets(int N,
     int num_neighbors = thrust::reduce( ptr_npp,ptr_npp+N,0,thrust::plus<int>());
 
     cuSetLastOffsetElement<<<1,1>>>(N,offset_per_particle,neighbors_per_particle);
-    
-    std::cout<<"Total neighbors= "<<num_neighbors<<std::endl;
-    cuSetupBuffer(num_neighbors, neighbor_list);
     cudaDeviceSynchronize();
+    // std::cout<<"Total neighbors= "<<num_neighbors<<std::endl;
+    cuSetupBuffer(num_neighbors, neighbor_list);
+    
     
 }
 
 __global__
-void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* offset_per_particle, int* neighbor_list, cuConstants kernel_constants){
+void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, int* offset_per_particle, int* neighbor_list){
 
     int idx = threadIdx.x+blockIdx.x*blockDim.x;
 

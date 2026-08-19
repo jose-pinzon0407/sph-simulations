@@ -2,6 +2,7 @@
 
 #include "ConfigVariables.hpp"
 
+
 struct cuParticles{
     Real* dev_rx=nullptr;
     Real* dev_ry=nullptr;
@@ -51,6 +52,11 @@ struct cuConstants{
         std::cout<<"[cuKernelConstants] density constant="<<density_constant<<std::endl;
         std::cout<<"[cuKernelConstants] pressure constant="<<pressure_constant<<std::endl;
         std::cout<<"[cuKernelConstants] viscosity constant="<<viscosity_constant<<std::endl;
+
+        std::cout<<"[cuKernelConstants] h1="<<h1<<std::endl;
+        std::cout<<"[cuKernelConstants] h2="<<h2<<std::endl;
+        std::cout<<"[cuKernelConstants] h6="<<h6<<std::endl;
+
     }
 
     Real h1;

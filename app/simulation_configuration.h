@@ -28,7 +28,21 @@
 
 #include "algorithmic/MultipassNeighborLists.h"
 
+
 namespace simulation{
+
+    void PrintCellsToFile(int step, std::vector<int>& start, std::vector<int>& end){
+    std::ofstream file;
+    std::string name="cells_"+std::to_string(step)+".txt";
+    file.open(name.c_str());
+
+    for(int i=0;i<start.size();++i){
+        file<<"cell:"<<i<<"["<<start[i]<<","<<end[i]<<")\n";
+    }
+
+    file.close();
+
+}
 
 InputParser parser;
 Domain domain;
@@ -47,6 +61,11 @@ void CreateTimers(){
     timers.AddTimer("approximate_density");
     timers.AddTimer("neighbor_search");
     timers.AddTimer("neighbor_list");
+
+    #ifdef GPU
+    timers.AddTimer("cuda_buffer_copy");
+    timers.AddTimer("buffer_inversion");
+    #endif
 
 
     timers.Init();
@@ -126,6 +145,8 @@ void PreLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_sear
     timers.Start("neighbor_search");
     neighbor_search.FindNeighbors(container);
     timers.Stop("neighbor_search");
+
+    PrintCellsToFile(0,neighbor_search.GetStart(),neighbor_search.GetEnd());
 
     timers.Start("neighbor_list");
     neighbor_list.AssembleNeighborList(container,neighbor_search);
@@ -322,6 +343,9 @@ void MainLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_sea
         neighbor_search.FindNeighbors(container);
         timers.Stop("neighbor_search");
 
+        PrintCellsToFile(i,neighbor_search.GetStart(),neighbor_search.GetEnd());
+
+
         timers.Start("neighbor_list");
         neighbor_list.AssembleNeighborList(container,neighbor_search);
         timers.Stop("neighbor_list");
@@ -364,7 +388,7 @@ void RunSimulationWithCellNeighbors(){
 
     MainLoopComputation<NeighborSearchType>(gns,list,computation);
 
-    End();
+    // End();
 
 }
 
@@ -380,7 +404,7 @@ void RunSimulationWithLists(){
 
     MainLoopComputationWithLists<NeighborSearchType>(gns,list,computation);
 
-    End();
+    // End();
 
 }
 
@@ -395,11 +419,14 @@ void RunSimulationWithMPLists(){
 
     MainLoopComputationWithMPLists<NeighborSearchType>(gns,list,computation);
 
-    End();
+    // End();
 }
 
 
+
+//Launcher function
 void RunSimulation(){
+
 
     if(parser.GetParameter("compute_type")=="mp-lists"){
         if(parser.GetParameter("order")=="morton"){
@@ -457,4 +484,7 @@ void RunSimulation(){
 
 }
 
+
 }//end simulation namespace
+
+
