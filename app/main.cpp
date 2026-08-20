@@ -1,21 +1,6 @@
-
-
-// #include "compute/ListsForceComputation.h"
-// #include "compute/GenericForceComputation.hpp"
-
-// #include "alg/TypesNeighborSearch.h"
-// #include "alg/GenericNeighborLists.hpp"
-
 #include "integrator/Integrator.h"
 #include "parallel/OMPFunctions.h"
 
-// #include "utils/CheckPointWriter.h"
-// #include "utils/TimerManager.h"
-// #include "utils/InputParser.h"
-
-
-// #include "algorithmic/MeasureAverageNeighborsPerParticle.h"
-// #include "simulation_configuration.h"
 
 #ifdef GPU
 #include "cu_simulation_configuration.h"

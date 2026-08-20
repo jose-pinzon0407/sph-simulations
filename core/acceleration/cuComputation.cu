@@ -1,5 +1,6 @@
 #include "cudaLaunchers.cuh"
 
+#include "order/cuRowMajorOrder.cuh"
 
 
 /*******************************************************************
@@ -115,8 +116,14 @@ void cuApproximateDensity(int N, Real* rx, Real* ry, int* particle_cell_id, int 
     Real rho_i=0.0;
 
     int cell_id = particle_cell_id[idx];
-    int cix = cell_id%nx;
-    int ciy = (cell_id/nx)%ny;
+
+    int cix=0;
+    int ciy=0;
+    int ciz=0;
+    cuRowMajorOrder::MapOneToThree(cix,ciy,ciz,cell_id,nx,ny,0);
+
+    // int cix = cell_id%nx;
+    // int ciy = (cell_id/nx)%ny;
 
     for(int dx=-1;dx<=1;++dx){
         for(int dy=-1;dy<=1;++dy){
@@ -131,7 +138,8 @@ void cuApproximateDensity(int N, Real* rx, Real* ry, int* particle_cell_id, int 
             if(cjy< 0 || cjy>= ny) continue;
 
 
-            int cell_j_id = cjx+cjy*nx;
+            // int cell_j_id = cjx+cjy*nx;
+            int cell_j_id = cuRowMajorOrder::MapThreeToOne(cjx,cjy,0,nx,ny,0);
 
             int cell_j_start = start[cell_j_id];
             int cell_j_end = end[cell_j_id];
@@ -195,8 +203,13 @@ void cuComputeForces(int N,
 
 
     int cell_id = particle_cell_id[idx];
-    int cix = cell_id%nx;
-    int ciy = (cell_id/nx)%ny;
+    // int cix = cell_id%nx;
+    // int ciy = (cell_id/nx)%ny;
+
+    int cix=0;
+    int ciy=0;
+    int ciz=0;
+    cuRowMajorOrder::MapOneToThree(cix,ciy,ciz,cell_id,nx,ny,0);
 
     for(int cx=-1;cx<=1;++cx){
         for(int cy=-1;cy<=1;++cy){
@@ -211,8 +224,10 @@ void cuComputeForces(int N,
 
             if(cjy< 0 || cjy>= ny) continue;
 
-            int cell_j_id = cjx+cjy*nx;
+            // int cell_j_id = cjx+cjy*nx;
+            int cell_j_id = cuRowMajorOrder::MapThreeToOne(cjx,cjy,0,nx,ny,0);
 
+            
             int cell_j_start = start[cell_j_id];
             int cell_j_end = end[cell_j_id];
 

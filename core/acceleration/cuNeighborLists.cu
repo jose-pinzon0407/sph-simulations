@@ -4,8 +4,7 @@
 #include<thrust/device_ptr.h>
 
 #include "cudaLaunchers.cuh"
-
-
+#include "order/cuRowMajorOrder.cuh"
 
 /**
  * KERNEL DECLARATIONS
@@ -78,8 +77,13 @@ void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_i
 
     int cell_id = particle_cell_id[idx];
 
-    int cix = cell_id%nx;
-    int ciy = (cell_id/nx)%ny;
+    // int cix = cell_id%nx;
+    // int ciy = (cell_id/nx)%ny;
+
+    int cix=0;
+    int ciy=0;
+    int ciz=0;
+    cuRowMajorOrder::MapOneToThree(cix,ciy,ciz,cell_id,nx,ny,0);
 
 
     for(int dx=-1;dx<=1;++dx){
@@ -95,7 +99,8 @@ void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_i
             if(cjy< 0 || cjy>= ny) continue;
 
 
-            int cell_j_id = cjx+cjy*nx;
+            // int cell_j_id = cjx+cjy*nx;
+            int cell_j_id = cuRowMajorOrder::MapThreeToOne(cjx,cjy,0,nx,ny,0);
 
             int cell_j_start = start[cell_j_id];
             int cell_j_end = end[cell_j_id];
@@ -167,9 +172,13 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
 
     int cell_id = particle_cell_id[idx];
 
-    int cix = cell_id%nx;
-    int ciy = (cell_id/nx)%ny;
+    // int cix = cell_id%nx;
+    // int ciy = (cell_id/nx)%ny;
 
+    int cix=0;
+    int ciy=0;
+    int ciz=0;
+    cuRowMajorOrder::MapOneToThree(cix,ciy,ciz,cell_id,nx,ny,0);
 
     for(int dx=-1;dx<=1;++dx){
         for(int dy=-1;dy<=1;++dy){
@@ -184,7 +193,9 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
             if(cjy< 0 || cjy>= ny) continue;
 
 
-            int cell_j_id = cjx+cjy*nx;
+            // int cell_j_id = cjx+cjy*nx;
+            int cell_j_id = cuRowMajorOrder::MapThreeToOne(cjx,cjy,0,nx,ny,0);
+
 
             int cell_j_start = start[cell_j_id];
             int cell_j_end = end[cell_j_id];

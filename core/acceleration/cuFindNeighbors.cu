@@ -77,7 +77,7 @@ void cuSetParticlesCellIndex(int N,
     ci0 = min(ci0,nx-1);
     ci1 = min(ci1,ny-1);
 
-    int cell_idx = MapThreeToOne(ci0,ci1,0,nx,ny,0);
+    int cell_idx = cuRowMajorOrder::MapThreeToOne(ci0,ci1,0,nx,ny,0);
     particle_cell_index[idx]=cell_idx;
 
 
