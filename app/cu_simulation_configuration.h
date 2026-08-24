@@ -150,8 +150,12 @@ namespace gpu_simulation{
 
         
         timers.Start("IO");
-        std::cout<<"[Simulation] Output step 0 positions\n";
-        // checkpoint->WriteCheckPoint(0,container);
+
+        if(output_step0){
+            std::cout<<"[Simulation] Output step 0 positions\n";
+            checkpoint->WriteCheckPoint(0,container);
+        }
+        
         std::cout<<cuStepHeader(0,N,dev_particles,domain);
         timers.Stop("IO");
 
@@ -338,8 +342,10 @@ namespace gpu_simulation{
         timers.Stop("cuda_buffer_copy");
 
         timers.Start("IO");
-        std::cout<<"[Simulation] Output step 0 positions\n";
-        // checkpoint->WriteCheckPoint(0,container);
+        if(output_step0){
+            std::cout<<"[Simulation] Output step 0 positions\n";
+            checkpoint->WriteCheckPoint(0,container);
+        }
         std::cout<<cuStepHeader(0,N,dev_particles,domain);
         timers.Stop("IO");
         timers.Stop("main_loop");

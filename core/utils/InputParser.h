@@ -30,6 +30,7 @@ class InputParser{
 
     int GetIntParameter(const char* name) const;
     Real GetRealParameter(const char* name) const;
+    bool GetBoolParameter(const char* name) const;
     private:
     /**
      * Find the numerical value associated to the given parameter name

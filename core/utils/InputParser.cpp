@@ -37,6 +37,8 @@ std::vector<std::string>& InputParser::GetInput(){
 }
 
 std::string InputParser::GetParameter(const char* name) const{
+
+    
     if(parameters.find(name)==parameters.end()){
         std::string dummy_value{"0"};
         return dummy_value;
@@ -47,6 +49,14 @@ std::string InputParser::GetParameter(const char* name) const{
     
     // return parameters[name];
 
+}
+
+bool InputParser::GetBoolParameter(const char* name) const{
+    bool condition=false;
+
+    std::istringstream(GetParameter(name))>>condition;
+
+    return condition;
 }
 
 Real InputParser::GetRealParameter(const char* name) const{
