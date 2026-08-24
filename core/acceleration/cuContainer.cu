@@ -70,7 +70,7 @@ void cuReadContainer(SoAContainer& container, cuParticles& dev_particles){
 void cuWriteContainer(SoAContainer& container, cuParticles& dev_particles){
     int N = container.Size();
     auto& particles = container.GetParticles();
-
+    // cudaDeviceSynchronize();
     //copy positions
     cuCopyBufferToHost(N,particles.rx.data(),dev_particles.dev_rx);
     cuCopyBufferToHost(N,particles.ry.data(),dev_particles.dev_ry);
@@ -82,8 +82,8 @@ void cuWriteContainer(SoAContainer& container, cuParticles& dev_particles){
     //copy forces
     cuCopyBufferToHost(N,particles.fx.data(),dev_particles.dev_fx);
     cuCopyBufferToHost(N,particles.fy.data(),dev_particles.dev_fy);
-
     cudaDeviceSynchronize();
+    
 
 }
 

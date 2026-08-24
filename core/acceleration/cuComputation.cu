@@ -1,7 +1,8 @@
 #include "cudaLaunchers.cuh"
 
+#include "cuComputation.cuh"
 #include "order/cuRowMajorOrder.cuh"
-
+#include "order/cuMortonOrder.cuh"
 
 /*******************************************************************
  * 
@@ -46,6 +47,43 @@ void cuInvertBuffer(int N,
     cudaDeviceSynchronize();
 }
 
+void cuCallbackComputeForcesSorted(int blocks, int threads, 
+                                 int N, 
+                                 Real* rx, Real* ry, 
+                                 Real* fx, Real* fy, 
+                                 Real* vx, Real* vy, 
+                                 int* particle_cell_id, 
+                                 int num_cells, int nx, int ny, 
+                                 int* start, int* end, 
+                                 Real* rho, Real* pressure, 
+                                 cuConstants kernel_constants,
+                                 std::string& order){
+    //define the type
+    if(order=="rowmajor"){
+        cuComputeForces<cuRowMajorOrder><<<blocks,threads>>>(N,
+        rx,ry,
+        fx,fy,
+        vx,vy,
+        particle_cell_id,
+        num_cells,nx,ny,
+        start,end,
+        rho,pressure,
+        kernel_constants);
+    }
+    if(order=="morton"){
+        cuComputeForces<cuMortonOrder><<<blocks,threads>>>(N,
+        rx,ry,
+        fx,fy,
+        vx,vy,
+        particle_cell_id,
+        num_cells,nx,ny,
+        start,end,
+        rho,pressure,
+        kernel_constants);
+    }      
+    cudaDeviceSynchronize();
+}
+
 void cuKernelComputeForcesSorted(int blocks, int threads, int N, Real* rx, Real* ry, Real* fx, Real* fy, Real* vx, Real* vy, int* particle_cell_id, int num_cells, int nx, int ny, int* start, int* end, Real* rho, Real* pressure, cuConstants kernel_constants){
     cuComputeForces<<<blocks,threads>>>(N,
         rx,ry,
@@ -56,6 +94,23 @@ void cuKernelComputeForcesSorted(int blocks, int threads, int N, Real* rx, Real*
         start,end,
         rho,pressure,
         kernel_constants);
+    cudaDeviceSynchronize();
+}
+
+void cuCallbackApproximateDensitySorted(int blocks, int threads, int N, 
+                                      Real* rx, Real* ry, 
+                                      int* particle_cell_id, 
+                                      int num_cells, int nx, int ny, 
+                                      int* start, int* end, Real* rho, 
+                                      cuConstants kernel_constants,
+                                      std::string& order){
+    //define the type
+    if(order=="rowmajor"){
+        cuApproximateDensity<cuRowMajorOrder><<<blocks,threads>>>(N,rx,ry, particle_cell_id,num_cells, nx, ny, start,end,rho, kernel_constants);
+    }
+    if(order=="morton"){
+        cuApproximateDensity<cuMortonOrder><<<blocks,threads>>>(N,rx,ry, particle_cell_id,num_cells, nx, ny, start,end,rho, kernel_constants);
+    }
     cudaDeviceSynchronize();
 }
 

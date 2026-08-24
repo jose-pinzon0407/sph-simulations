@@ -1,8 +1,5 @@
 #pragma once
-#include "container/SoAContainer.h"
-#include "cuParticles.cuh"
-#include "Domain.h"
-#include<cuda_runtime.h>
+#include "cuda_callbacks.cuh"
 
 /**
  * Only code that will be called from HOST
@@ -15,7 +12,6 @@ void cuDeviceProperties();
 void cuCreateContainer(SoAContainer& container, cuParticles& particles);
 void cuReadContainer(SoAContainer& container, cuParticles& particles);
 void cuWriteContainer(SoAContainer& container, cuParticles& particles);
-
 void cuSetupNeighborLists(SoAContainer& container, cuNeighborList& neighbor_list);
 
 /**
@@ -30,6 +26,9 @@ void cuInvertBuffer(int N,
  * Functions for FindNeighbors
  */
 void cuCreateCellBuffers(int num_cells, cuParticles& particles);
+
+
+
 
 void cuKernelFindNeighbors(int blocks, int threads, 
                         int N, int* particle_cell_index,
@@ -91,15 +90,15 @@ void cuKernelComputePressureSorted(int blocks, int threads,
                                    int N, 
                                    Real* rho, Real* pressure);
 
-void cuKernelNeighborLists(int blocks, int threads,
-                           int N,
-                           Real* rx, Real* ry,
-                           int* particle_cell_id, 
-                           int num_cells, int nx, int ny, 
-                           int* cell_start, int* cell_end,
-                           int* neighbors_per_particle, int* offset_per_particle,
-                           int*& neighbor_list_indices
-                          );
+// void cuKernelNeighborLists(int blocks, int threads,
+//                            int N,
+//                            Real* rx, Real* ry,
+//                            int* particle_cell_id, 
+//                            int num_cells, int nx, int ny, 
+//                            int* cell_start, int* cell_end,
+//                            int* neighbors_per_particle, int* offset_per_particle,
+//                            int*& neighbor_list_indices
+//                           );
 
 /**
  * Utilities section

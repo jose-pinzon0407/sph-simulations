@@ -6,8 +6,9 @@
 
 
 #include "cudaLaunchers.cuh"
+#include "cuFindNeighbors.cuh"
 #include "order/cuRowMajorOrder.cuh"
-
+#include "order/cuMortonOrder.cuh"
 
 __global__ 
 void cuSetParticlesCellIndex(int N, Real* rx, Real* ry, Real cell_size, int* particle_cell_index, int nx, int ny);
@@ -31,6 +32,48 @@ void cuCreateCellBuffers(int num_cells, cuParticles& particles){
     cuSetBufferValue(num_cells,particles.cell_end,-1);
     cuSetBufferValue(num_cells,particles.cell_start,-1);
 }
+
+void cuCallbackFindNeighbors(int blocks, int threads, 
+                        int N, int* particle_cell_index,
+                        int nx, int ny, Real cell_size,
+                        int* cell_start, int* cell_end,
+                        Real* rx, Real* ry,
+                        Real* vx, Real* vy,
+                        Real* fx, Real* fy,
+                        std::string& order)
+{
+    int total_cells=nx*ny;
+
+    //check for type
+    if(order=="morton"){
+        cuSetParticlesCellIndex<cuMortonOrder><<<blocks,threads>>>(N,rx,ry,cell_size,particle_cell_index,nx,ny);
+        cudaDeviceSynchronize();
+
+        cuSortContainerByCellID(N,particle_cell_index,rx,ry,vx,vy,fx,fy);
+        cudaDeviceSynchronize();
+        cudaMemset(cell_start,-1,total_cells*sizeof(int));
+        cudaMemset(cell_end,-1,total_cells*sizeof(int));
+
+        cuSetCellRanges<<<blocks,threads>>>(N,cell_start,cell_end,particle_cell_index);
+        cudaDeviceSynchronize();
+        return;
+    }
+    
+    if(order=="rowmajor"){
+        cuSetParticlesCellIndex<cuRowMajorOrder><<<blocks,threads>>>(N,rx,ry,cell_size,particle_cell_index,nx,ny);
+        cudaDeviceSynchronize();
+
+        cuSortContainerByCellID(N,particle_cell_index,rx,ry,vx,vy,fx,fy);
+        cudaDeviceSynchronize();
+        cudaMemset(cell_start,-1,total_cells*sizeof(int));
+        cudaMemset(cell_end,-1,total_cells*sizeof(int));
+
+        cuSetCellRanges<<<blocks,threads>>>(N,cell_start,cell_end,particle_cell_index);
+        cudaDeviceSynchronize();
+        return;
+    }
+}
+
 
 void cuKernelFindNeighbors(int blocks, int threads,
                         int N, int* particle_cell_index,

@@ -42,7 +42,21 @@ namespace simulation{
 
     file.close();
 
-}
+    }
+
+
+    void PrintCellIDToFile(int step, std::vector<int>& cell_id){
+    std::ofstream file;
+    std::string name="ids_"+std::to_string(step)+".txt";
+    file.open(name.c_str());
+
+    for(int i=0;i<cell_id.size();++i){
+        file<<"particle:"<<i<<" in cell: "<<cell_id[i]<<"\n";
+    }
+
+    file.close();
+
+    }
 
 InputParser parser;
 Domain domain;
@@ -61,6 +75,8 @@ void CreateTimers(){
     timers.AddTimer("approximate_density");
     timers.AddTimer("neighbor_search");
     timers.AddTimer("neighbor_list");
+    timers.AddTimer("integration");
+    timers.AddTimer("IO");
 
     #ifdef GPU
     timers.AddTimer("cuda_buffer_copy");
@@ -138,23 +154,19 @@ void End(){
 template<class NeighborSearchType>
 void PreLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_search, GenericNeighborLists<NeighborSearchType>& neighbor_list, GenericForceComputation<NeighborSearchType>& computation ){
 
-
-    
-
-
     timers.Start("neighbor_search");
     neighbor_search.FindNeighbors(container);
     timers.Stop("neighbor_search");
 
-    PrintCellsToFile(0,neighbor_search.GetStart(),neighbor_search.GetEnd());
+    // PrintCellsToFile(0,neighbor_search.GetStart(),neighbor_search.GetEnd());
 
-    timers.Start("neighbor_list");
-    neighbor_list.AssembleNeighborList(container,neighbor_search);
-    timers.Stop("neighbor_list");
+    // timers.Start("neighbor_list");
+    // neighbor_list.AssembleNeighborList(container,neighbor_search);
+    // timers.Stop("neighbor_list");
 
 
     std::cout<<"[Simulation] Output step 0 positions\n";
-    checkpoint->WriteCheckPoint(0,container);
+    // checkpoint->WriteCheckPoint(0,container);
 
     timers.Start("approximate_density");
     computation.ApproximateDensity(container);
@@ -168,13 +180,15 @@ void PreLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_sear
     computation.ComputeForces(container);
     timers.Stop("force_computation");
 
+    timers.Start("IO");
     std::cout<<StepHeader(0,container,domain);
+    timers.Stop("IO");
 
 }
 
 template<class NeighborSearchType>
 void PreLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType> & neighbor_search, GenericNeighborLists<NeighborSearchType> & neighbor_list, ListsForceComputation& computation ){
-
+    timers.Start("main_loop");
     timers.Start("neighbor_search");
     neighbor_search.FindNeighbors(container);
     timers.Stop("neighbor_search");
@@ -185,7 +199,7 @@ void PreLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType> & nei
 
 
     std::cout<<"[Simulation] Output step 0 positions\n";
-    checkpoint->WriteCheckPoint(0,container);
+    // checkpoint->WriteCheckPoint(0,container);
 
     timers.Start("approximate_density");
     computation.ApproximateDensity(container);
@@ -199,7 +213,11 @@ void PreLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType> & nei
     computation.ComputeForces(container);
     timers.Stop("force_computation");
 
+    timers.Start("IO");
     std::cout<<StepHeader(0,container,domain);
+    timers.Stop("IO");
+    timers.Stop("main_loop");
+
 
 }
 
@@ -210,9 +228,10 @@ void MainLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType>& nei
     timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
-
+        timers.Start("integration");
         integrator.UpdateVelocities(container);
         integrator.UpdatePositions(container);
+        timers.Stop("integration");
 
 
         timers.Start("neighbor_search");
@@ -223,8 +242,9 @@ void MainLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType>& nei
         neighbor_list.AssembleNeighborList(container,neighbor_search);
         timers.Stop("neighbor_list");
 
-
+        timers.Start("IO");
         checkpoint->WriteCheckPoint(i,container);
+        timers.Stop("IO");
 
         timers.Start("approximate_density");
         computation.ApproximateDensity(container);
@@ -238,10 +258,12 @@ void MainLoopComputationWithLists(GenericNeighborSearch<NeighborSearchType>& nei
         computation.ComputeForces(container);
         timers.Stop("force_computation");
 
-        measure.Measure(neighbor_list.GetNeighborList());
-        measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
+        // measure.Measure(neighbor_list.GetNeighborList());
+        // measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
 
+        timers.Start("IO");
         std::cout<<StepHeader(i,container,domain);
+        timers.Stop("IO");
 
     }
 
@@ -262,7 +284,7 @@ void PreLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType> & n
 
 
     std::cout<<"[Simulation] Output step 0 positions\n";
-    checkpoint->WriteCheckPoint(0,container);
+    // checkpoint->WriteCheckPoint(0,container);
 
     timers.Start("approximate_density");
     computation.ApproximateDensity(container);
@@ -276,7 +298,9 @@ void PreLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType> & n
     computation.ComputeForces(container);
     timers.Stop("force_computation");
 
+    timers.Start("IO");
     std::cout<<StepHeader(0,container,domain);
+    timers.Stop("IO");
 
 }
 
@@ -287,10 +311,10 @@ void MainLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType>& n
     timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
-
+        timers.Start("integration");
         integrator.UpdateVelocities(container);
         integrator.UpdatePositions(container);
-
+        timers.Stop("integration");
 
 
         timers.Start("neighbor_search");
@@ -301,8 +325,9 @@ void MainLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType>& n
         neighbor_list.AssembleNeighborList(container,neighbor_search);
         timers.Stop("neighbor_list");
 
-
+        timers.Start("IO");
         checkpoint->WriteCheckPoint(i,container);
+        timers.Stop("IO");
 
         timers.Start("approximate_density");
         computation.ApproximateDensity(container);
@@ -316,10 +341,12 @@ void MainLoopComputationWithMPLists(GenericNeighborSearch<NeighborSearchType>& n
         computation.ComputeForces(container);
         timers.Stop("force_computation");
 
-        measure.Measure(neighbor_list.GetNeighborList(),neighbor_list.GetOffsetPerParticle());
-        measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
+        // measure.Measure(neighbor_list.GetNeighborList(),neighbor_list.GetOffsetPerParticle());
+        // measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
 
+        timers.Start("IO");
         std::cout<<StepHeader(i,container,domain);
+        timers.Stop("IO");
 
     }
 
@@ -334,24 +361,26 @@ void MainLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_sea
     timers.Start("main_loop");
     for(int i=1;i<steps;++i){
         
-
+        timers.Start("integration");
         integrator.UpdateVelocities(container);
         integrator.UpdatePositions(container);
+        timers.Stop("integration");
 
 
         timers.Start("neighbor_search");
         neighbor_search.FindNeighbors(container);
         timers.Stop("neighbor_search");
 
-        PrintCellsToFile(i,neighbor_search.GetStart(),neighbor_search.GetEnd());
+        // PrintCellsToFile(i,neighbor_search.GetStart(),neighbor_search.GetEnd());
 
 
-        timers.Start("neighbor_list");
-        neighbor_list.AssembleNeighborList(container,neighbor_search);
-        timers.Stop("neighbor_list");
+        // timers.Start("neighbor_list");
+        // neighbor_list.AssembleNeighborList(container,neighbor_search);
+        // timers.Stop("neighbor_list");
 
-
+        timers.Start("IO");
         checkpoint->WriteCheckPoint(i,container);
+        timers.Stop("IO");
 
         timers.Start("approximate_density");
         computation.ApproximateDensity(container);
@@ -365,10 +394,12 @@ void MainLoopComputation(GenericNeighborSearch<NeighborSearchType>& neighbor_sea
         computation.ComputeForces(container);
         timers.Stop("force_computation");
 
-        measure.Measure(neighbor_list.GetNeighborList());
-        measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
+        // measure.Measure(neighbor_list.GetNeighborList());
+        // measure.MeasureCells(neighbor_search.GetStart(),neighbor_search.GetEnd());
 
+        timers.Start("IO");
         std::cout<<StepHeader(i,container,domain);
+        timers.Stop("IO");
 
     }
 

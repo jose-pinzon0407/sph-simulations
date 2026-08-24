@@ -123,9 +123,12 @@ void cuApproximateDensityWithLists(int N,
         Real r2 = dx*dx + dy*dy;
 
 
-        rho_i += kernel_constants.density_constant*DensityWLists(r2);
+        rho_i += kernel_constants.density_constant*(kernel_constants.h2-r2)*(kernel_constants.h2-r2)*(kernel_constants.h2-r2);
 
     }
+
+    rho_i += kernel_constants.density_constant*(kernel_constants.h2)*(kernel_constants.h2)*(kernel_constants.h2);
+
 
     rho[idx]=rho_i;
 
@@ -172,7 +175,7 @@ void cuComputeForcesWithLists(int N,
 
     for(int j=offset_i;j<end_i;++j){
         int idx_j=neighbor_list[j];
-
+        // if(idx_j == idx) continue;
         Real dx = rix-rx[idx_j];
         Real dy = riy-ry[idx_j];
 
@@ -180,23 +183,19 @@ void cuComputeForcesWithLists(int N,
         Real pj= pressure[idx_j];  
         Real rho_j=rho[idx_j];
 
-        Real r1=0.0;
-        Real inv_r1 = rsqrt(r2);
-        r1 = r2*inv_r1;
+        float r2_f =(float)r2;
+        float inv_r1_f1 = rsqrtf(r2_f);
+        float inv_r1 = inv_r1_f1;
+        // Real inv_r1 = rsqrt(r2);
+        Real r1 = r2*inv_r1;
 
-        if(r2>TOL*TOL){
+        
 
+        {
 
-            // Real h1_r12= (kernel_constants.h1-r1)*(kernel_constants.h1-r1);
-            // Real pressure_multiplier = -0.5*(p_rho_i2+pj*(rho_j*rho_j));
-
-            // pressure_multiplier *= -3.0*(kernel_constants.h1-r1)*(kernel_constants.h1-r1)*kernel_constants.pressure_constant*inv_r1;
 
             Real pressure_multiplier = 1.5*(kernel_constants.h1-r1)*(kernel_constants.h1-r1)*kernel_constants.pressure_constant*inv_r1*(p_rho_i2+pj*(rho_j*rho_j));
             
-
-            // fp_x += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dx*pressure_multiplier;
-            // fp_y += -3.0*kernel_constants.pressure_constant*h1_r12*inv_r1*dy*pressure_multiplier;
 
             fp_x = fma(pressure_multiplier,dx,fp_x);
             fp_y = fma(pressure_multiplier,dy,fp_y);
@@ -207,10 +206,6 @@ void cuComputeForcesWithLists(int N,
             Real dvy = vy[idx_j]-viy;
 
             Real viscosity_multiplier = kernel_constants.viscosity_constant/rho_j*(kernel_constants.h1-r1);
-
-
-            // fv_x += viscosity_multiplier*dvx;
-            // fv_y += viscosity_multiplier*dvy;
 
             fv_x = fma(viscosity_multiplier,dvx,fv_x);
             fv_x = fma(viscosity_multiplier,dvy,fv_y);

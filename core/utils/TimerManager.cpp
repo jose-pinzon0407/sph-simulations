@@ -26,9 +26,14 @@ void TimerManager::OutputTimersToFile(int N, int steps){
 }
 
 void TimerManager::PrintTimers(){
+    double time_sum=0.0;
+    std::cout<<"[HighPerformanceClock] Measured times: \n";
     for(int i=0;i<timers.size();++i){
         std::cout<<timers[i].GetName()<<"="<<timers[i].GetTotalTimeInSeconds()<<"\n";
+        time_sum += timers[i].GetTotalTimeInSeconds();
     }
+
+    std::cout<<"Total time="<<time_sum-GetTimer("main_loop")->GetTotalTimeInSeconds()<<"\n";
 }
 
 void TimerManager::Init(const char* path){

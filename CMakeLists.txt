@@ -98,10 +98,12 @@ set(SPH_SOURCES
 if(GPU)
         list(APPEND SPH_SOURCES
           ${SPH_CORE}/acceleration/cuContainer.cu
+          ${SPH_CORE}/acceleration/integrator/cuIntegrator.cu
           ${SPH_CORE}/acceleration/cuFindNeighbors.cu
           ${SPH_CORE}/acceleration/cuComputation.cu
           ${SPH_CORE}/acceleration/cuNeighborLists.cu
           ${SPH_CORE}/acceleration/cuComputationWithLists.cu
+          ${SPH_CORE}/acceleration/utils/cuUtils.cu
           )
 endif()
 
@@ -127,7 +129,7 @@ target_link_libraries(sim-sph.out PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 if(GPU)
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo --prec-sqrt=false --prec-div=false --use_fast_math")
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo --prec-sqrt=false --prec-div=false --use_fast_math -O3")
 find_package(CUDAToolkit REQUIRED)
 target_link_libraries(sim-sph.out PRIVATE CUDA::cudart)
 # set_target_properties(sim-sph.out PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

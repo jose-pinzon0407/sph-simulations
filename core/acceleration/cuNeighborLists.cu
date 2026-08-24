@@ -4,7 +4,9 @@
 #include<thrust/device_ptr.h>
 
 #include "cudaLaunchers.cuh"
+#include "cuNeighborLists.cuh"
 #include "order/cuRowMajorOrder.cuh"
+#include "order/cuMortonOrder.cuh"
 
 /**
  * KERNEL DECLARATIONS
@@ -32,27 +34,79 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
  * LAUNCHER FUNCTIONS
  * 
  *******************************************************************/
-
-void cuKernelNeighborLists(int blocks, int threads,
+void cuCallbackNeighborLists(int blocks, int threads,
                            int N,
                            Real* rx, Real* ry,
                            int* particle_cell_id, 
                            int num_cells, int nx, int ny, 
                            int* cell_start, int* cell_end,
-                           int* neighbors_per_particle, int* offset_per_particle, int*& neighbor_list                          ){
+                           int* neighbors_per_particle, int* offset_per_particle,
+                           int*& neighbor_list,
+                           std::string& order
+                          ){
+    //check for type
+    if(order=="morton"){
 
-    cuCountNeighborsPerParticle<<<blocks,threads>>>(N,rx,ry,
-                                                particle_cell_id,
-                                                num_cells,nx,ny,
-                                                cell_start,cell_end,
-                                                neighbors_per_particle);
+    cuCountNeighborsPerParticle<cuMortonOrder><<<blocks,threads>>>(N,rx,ry,
+                                                    particle_cell_id,
+                                                    num_cells,nx,ny,
+                                                    cell_start,cell_end,
+                                                    neighbors_per_particle);
     cudaDeviceSynchronize();    
 
     cuCalculateCellOffsets(N,offset_per_particle,neighbors_per_particle, neighbor_list);
 
-    cuAssignIndices<<<blocks,threads>>>(N,rx,ry,particle_cell_id,num_cells,nx,ny,cell_start,cell_end,offset_per_particle,neighbor_list);
+    cuAssignIndices<cuMortonOrder><<<blocks,threads>>>(N,
+                                                       rx,ry,
+                                                       particle_cell_id,
+                                                       num_cells,nx,ny,
+                                                       cell_start,cell_end,
+                                                       offset_per_particle,neighbor_list,neighbors_per_particle);
+
+    }
+    if(order=="rowmajor"){
+    cuCountNeighborsPerParticle<cuRowMajorOrder><<<blocks,threads>>>(N,rx,ry,
+                                                    particle_cell_id,
+                                                    num_cells,nx,ny,
+                                                    cell_start,cell_end,
+                                                    neighbors_per_particle);
+    cudaDeviceSynchronize();    
+
+    cuCalculateCellOffsets(N,offset_per_particle,neighbors_per_particle, neighbor_list);
+
+    cuAssignIndices<cuRowMajorOrder><<<blocks,threads>>>(N,
+                                                        rx,ry,
+                                                        particle_cell_id,
+                                                        num_cells,nx,ny,
+                                                        cell_start,cell_end,
+                                                        offset_per_particle,neighbor_list,neighbors_per_particle);
+    
+    }
     cudaDeviceSynchronize();
-} 
+
+}
+
+
+// void cuKernelNeighborLists(int blocks, int threads,
+//                            int N,
+//                            Real* rx, Real* ry,
+//                            int* particle_cell_id, 
+//                            int num_cells, int nx, int ny, 
+//                            int* cell_start, int* cell_end,
+//                            int* neighbors_per_particle, int* offset_per_particle, int*& neighbor_list                          ){
+
+//     cuCountNeighborsPerParticle<<<blocks,threads>>>(N,rx,ry,
+//                                                 particle_cell_id,
+//                                                 num_cells,nx,ny,
+//                                                 cell_start,cell_end,
+//                                                 neighbors_per_particle);
+//     cudaDeviceSynchronize();    
+
+//     cuCalculateCellOffsets(N,offset_per_particle,neighbors_per_particle, neighbor_list);
+
+//     cuAssignIndices<<<blocks,threads>>>(N,rx,ry,particle_cell_id,num_cells,nx,ny,cell_start,cell_end,offset_per_particle,neighbor_list);
+//     cudaDeviceSynchronize();
+// } 
 
 
 /**********************************************************************
