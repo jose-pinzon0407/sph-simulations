@@ -24,8 +24,6 @@ void cuComputeForcesWithLists(int N,
                     Real* rho, Real* pressure, 
                     int* offset_per_particle, int* neighbor_list,
                     cuConstants kernel_constants);
-__device__
-Real DensityWLists(Real r2);
 
 /*******************************************************************
  * 
@@ -84,12 +82,6 @@ void cuKernelComputeForcesWithNeighborLists(int blocks, int threads,
  * KERNEL DEFINITIONS
  * 
  *******************************************************************/
-
-__device__
-Real DensityWLists(Real r2){
-    Real h2=H*H;
-    return (h2-r2)*(h2-r2)*(h2-r2);
-}
 
 __global__
 void cuApproximateDensityWithLists(int N, 

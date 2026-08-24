@@ -6,62 +6,24 @@
  */
 void cuDeviceProperties();
 
-/**
- * \brief Copies host to device
- */
+
+
 void cuCreateContainer(SoAContainer& container, cuParticles& particles);
 void cuReadContainer(SoAContainer& container, cuParticles& particles);
 void cuWriteContainer(SoAContainer& container, cuParticles& particles);
 void cuSetupNeighborLists(SoAContainer& container, cuNeighborList& neighbor_list);
-
-/**
- * TEST
- */
+void cuCreateCellBuffers(int num_cells, cuParticles& particles);
 
 void cuInvertBuffer(int N, 
                     int blocks, int threads,
                     Real * rho, Real* inv_rho);
 
-/**
- * Functions for FindNeighbors
- */
-void cuCreateCellBuffers(int num_cells, cuParticles& particles);
 
 
 
 
-void cuKernelFindNeighbors(int blocks, int threads, 
-                        int N, int* particle_cell_index,
-                        int nx, int ny, Real cell_size,
-                        int* cell_start, int* cell_end,
-                        Real* rx, Real* ry,
-                        Real* vx, Real* vy,
-                        Real* fx, Real* fy);
 
-/**
- * Functions for ForceComputation with Sorted + Cell Ranges
- */
-void cuKernelComputeForcesSorted(int blocks, int threads, 
-                                 int N, 
-                                 Real* rx, Real* ry, 
-                                 Real* fx, Real* fy, 
-                                 Real* vx, Real* vy, 
-                                 int* particle_cell_id, 
-                                 int num_cells, int nx, int ny, 
-                                 int* start, int* end, 
-                                 Real* rho, Real* pressure, 
-                                 cuConstants kernel_constants);
 
-void cuKernelApproximateDensitySorted(int blocks, int threads, int N, 
-                                      Real* rx, Real* ry, 
-                                      int* particle_cell_id, 
-                                      int num_cells, int nx, int ny, 
-                                      int* start, int* end, Real* rho, 
-                                      cuConstants kernel_constants);
-
-/**
- * Neighbor List Force Computation Launchers
- */
 void cuKernelComputeForcesWithNeighborLists(int blocks, int threads,
                            int N,
                            Real* rx, Real* ry,
@@ -90,18 +52,9 @@ void cuKernelComputePressureSorted(int blocks, int threads,
                                    int N, 
                                    Real* rho, Real* pressure);
 
-// void cuKernelNeighborLists(int blocks, int threads,
-//                            int N,
-//                            Real* rx, Real* ry,
-//                            int* particle_cell_id, 
-//                            int num_cells, int nx, int ny, 
-//                            int* cell_start, int* cell_end,
-//                            int* neighbors_per_particle, int* offset_per_particle,
-//                            int*& neighbor_list_indices
-//                           );
 
 /**
- * Utilities section
+ * Utility Functions
  */
 template<class T> 
 void cuSetupBuffer(size_t N, T*& buffer){
