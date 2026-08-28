@@ -18,8 +18,6 @@ void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_i
 
     int cell_id = particle_cell_id[idx];
 
-    // int cix = cell_id%nx;
-    // int ciy = (cell_id/nx)%ny;
 
     int cix=0;
     int ciy=0;
@@ -40,7 +38,6 @@ void cuCountNeighborsPerParticle(int N, Real* rx, Real* ry, int* particle_cell_i
             if(cjy< 0 || cjy>= ny) continue;
 
 
-            // int cell_j_id = cjx+cjy*nx;
             int cell_j_id = Order::MapThreeToOne(cjx,cjy,0,nx,ny,0);
 
             int cell_j_start = start[cell_j_id];
@@ -81,14 +78,12 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
     if(idx >= N) return;
 
     int offset_i=offset_per_particle[idx];
-    int counter=0;
+    // int counter=0;
     Real rix=rx[idx];
     Real riy=ry[idx];
 
     int cell_id = particle_cell_id[idx];
 
-    // int cix = cell_id%nx;
-    // int ciy = (cell_id/nx)%ny;
 
     int cix=0;
     int ciy=0;
@@ -108,11 +103,7 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
             if(cjy< 0 || cjy>= ny) continue;
 
 
-            // int cell_j_id = cjx+cjy*nx;
             int cell_j_id = Order::MapThreeToOne(cjx,cjy,0,nx,ny,0);
-
-            
-
 
             int cell_j_start = start[cell_j_id];
             int cell_j_end = end[cell_j_id];
@@ -122,7 +113,7 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
             }
 
             for(int j=cell_j_start;j<cell_j_end;++j){
-                if(counter ==neighbors_per_particle[idx]) break;
+                // if(counter ==neighbors_per_particle[idx]) break;
 
                 Real dx = rix-rx[j];
                 Real dy = riy-ry[j];
@@ -134,7 +125,7 @@ void cuAssignIndices(int N, Real* rx, Real* ry, int* particle_cell_id, int num_c
                 
                 neighbor_list[offset_i] = j;
                 offset_i++;
-                counter++;
+                // counter++;
 
 
             }
