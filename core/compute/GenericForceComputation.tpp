@@ -21,7 +21,6 @@ void GenericForceComputation<NeighborSearchType>::Compute(SoAContainer& particle
 
 template<class NeighborSearchType>
 void GenericForceComputation<NeighborSearchType>::CalculatePressure(SoAContainer& particles){
-
     size_t N = particles.Size();
 
     if(pressure_field.size() != N){
@@ -199,6 +198,8 @@ void GenericForceComputation<NeighborSearchType>::ComputeForces(SoAContainer& pa
 
                 for(int pj=cell_start_j;pj<cell_end_j;++pj){
 
+                    if(pj==i) continue;
+
                     Real dx = soa_particles.rx[i]-soa_particles.rx[pj];
                     Real dy = soa_particles.ry[i]-soa_particles.ry[pj];
                     Real dz = soa_particles.rz[i]-soa_particles.rz[pj];
@@ -227,7 +228,7 @@ void GenericForceComputation<NeighborSearchType>::ComputeForces(SoAContainer& pa
                     Real dvx = soa_particles.vx[pj]-vi_x;
                     Real dvy = soa_particles.vy[pj]-vi_y;
                     Real dvz = soa_particles.vz[pj]-vi_z;
-                    Real viscosity_multiplier = mu/(soa_particles.density[pj]*M_PI*h6)*45.0*(H-r1);
+                    Real viscosity_multiplier = mu/(soa_particles.density[pj]*M_PI*h6)*45.0*(h1-r1);
 
                     fv_x += viscosity_multiplier*dvx;
                     fv_y += viscosity_multiplier*dvy;

@@ -125,7 +125,7 @@ void ListsForceComputation::ComputeForces(SoAContainer& particles){
             Real dvx = soa_particles.vx[j_idx]-vi_x;
             Real dvy = soa_particles.vy[j_idx]-vi_y;
             Real dvz = soa_particles.vz[j_idx]-vi_z;
-            Real viscosity_multiplier = mu/(soa_particles.density[j_idx]*M_PI*h6)*45.0*(H-r1);
+            Real viscosity_multiplier = mu/(soa_particles.density[j_idx]*M_PI*h6)*45.0*(h1-r1);
 
             fv_x += viscosity_multiplier*dvx;
             fv_y += viscosity_multiplier*dvy;
